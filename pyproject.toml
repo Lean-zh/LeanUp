@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leanup"
-version = "0.0.2"
+version = "0.0.3"
 description = "Python package for Lean Environment Management"
 readme = "README.md"
 authors = [
@@ -23,6 +23,7 @@ dependencies = [
   "click",  # Command line interface
   "platformdirs",  # Platform-specific directories
   "loguru",  # Logging
+  "platform",  # Platform detection
 ]
 
 [project.optional-dependencies]
