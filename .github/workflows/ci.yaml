@@ -20,7 +20,7 @@ jobs:
             os: macos-latest
           # NOTE: Windows support should be available !
           - python-version: "3.9" 
-            os: window
+            os: windows-latest
             
     steps:
     - uses: actions/checkout@v2
