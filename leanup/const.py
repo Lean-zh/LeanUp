@@ -3,6 +3,7 @@ import platform
 import platformdirs
 from pathlib import Path
 
+OS_TYPE = None
 if platform.system() == 'Windows':
     OS_TYPE = 'Windows'
 elif platform.system() == 'Darwin':

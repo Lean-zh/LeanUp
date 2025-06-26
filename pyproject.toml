@@ -33,6 +33,9 @@ dev = [
     "ruff"  # linting
 ]
 
+[project.scripts]
+leanup = "leanup.cli:leanup"
+
 [project.urls]
 
 bugs = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/issues"
