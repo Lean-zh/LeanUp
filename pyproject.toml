@@ -34,7 +34,7 @@ dev = [
 ]
 
 [project.scripts]
-leanup = "leanup.cli:leanup"
+leanup = "leanup.cli:main"
 
 [project.urls]
 

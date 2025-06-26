@@ -1,6 +1,9 @@
 import subprocess
 import os
-from typing import Optional, Union, Tuple, List, Dict, Any
+from pathlib import Path
+import tempfile
+from contextlib import contextmanager
+from typing import Optional, Union, Tuple, List, Dict, Any, Generator
 import git
 from psutil import Process, NoSuchProcess
 import logging
@@ -14,11 +17,66 @@ class CommandExecutor:
         
         Args:
             cwd: Default working directory
+            timeout: Default timeout for commands
         """
         self.cwd = cwd
         self.timeout = timeout
         self.active_processes = []  # Track active processes
     
+    @contextmanager
+    def working_directory(
+        self,
+        path: Optional[Union[str, Path]] = None,
+        chdir: bool = False,
+    ) -> Generator[Path, None, None]:
+        """
+        Context manager for working directory operations
+        
+        Args:
+            path: Target working directory path. If None, creates a temporary directory
+            chdir: Whether to actually change the current working directory
+            
+        Yields:
+            Path object representing working directory
+        """
+        origin = Path.cwd()
+        if path is None: # Create temporary directory
+            tmp_dir = tempfile.TemporaryDirectory()
+            path = tmp_dir.__enter__()
+            is_temporary = True
+        else:
+            is_temporary = False
+            
+        path = Path(path)
+        path.mkdir(parents=True, exist_ok=True)
+            
+        if chdir: os.chdir(path)
+        try:
+            yield path
+        finally:
+            if chdir: os.chdir(origin)
+            if is_temporary:
+                tmp_dir.__exit__(None, None, None)
+
+    def execute_in_directory(self, command: list, 
+                           directory: Optional[Union[str, Path]] = None,
+                           chdir: bool = False,
+                           **kwargs) -> Tuple[str, str, int]:
+        """
+        Execute command in specified directory using context manager
+        
+        Args:
+            command: Command list to execute
+            directory: Target directory for execution
+            chdir: Whether to change working directory
+            **kwargs: Additional arguments passed to execute()
+            
+        Returns:
+            Tuple containing (stdout, stderr, return_code)
+        """
+        with self.working_directory(directory, chdir=chdir) as work_dir:
+            return self.execute(command, cwd=str(work_dir), **kwargs)
+
     def execute(self, command: list,
             cwd: Optional[str] = None, 
             text: bool = True,
@@ -76,12 +134,7 @@ class CommandExecutor:
             # Always cleanup processes
             self._cleanup_processes()
         return command_output, error_output, exit_code
-    
-    def _set_limits(self):
-        """Set resource limits for processes"""
-        # TODO: Implement memory limit logic
-        pass
-    
+
     def _get_process_children(self, pid: int) -> List[Process]:
         """
         Get child processes for given PID
@@ -128,5 +181,3 @@ class CommandExecutor:
             return True, ""
         except Exception as e:
             return False, str(e)
-
-        
