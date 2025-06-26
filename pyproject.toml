@@ -18,7 +18,11 @@ classifiers = [
 ]
 license = {text = "MIT license"}
 dependencies = [
-  
+  "gitpython",
+  "psutil",  # Process management
+  "click",  # Command line interface
+  "platformdirs",  # Platform-specific directories
+  "loguru",  # Logging
 ]
 
 [project.optional-dependencies]
