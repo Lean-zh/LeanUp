@@ -23,7 +23,6 @@ dependencies = [
   "click",  # Command line interface
   "platformdirs",  # Platform-specific directories
   "loguru",  # Logging
-  "platform",  # Platform detection
 ]
 
 [project.optional-dependencies]
