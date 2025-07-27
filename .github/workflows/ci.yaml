@@ -43,7 +43,6 @@ jobs:
         leanup version
         leanup status
         leanup install
-        leanup status
     
     - name: Test with pytest and coverage
       run: |
