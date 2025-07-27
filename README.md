@@ -48,8 +48,8 @@ pip install -e .
 # 查看帮助
 leanup --help
 
-# 安装 elan（Lean 工具链管理器）
-leanup install
+# 初始化 Lean 环境（安装 elan 工具链管理器）
+leanup init
 
 # 查看状态
 leanup status
@@ -63,22 +63,22 @@ leanup elan default stable
 
 ## 📖 详细使用指南
 
-### 安装 elan
+### 初始化环境
 
 ```bash
-# 安装最新版本的 elan
-leanup install
+# 初始化环境并安装最新版本的 elan
+leanup init
 
-# 安装指定版本
-leanup install v1.4.2
+# 强制重新初始化
+leanup init --force
 
-# 强制重新安装
-leanup install --force
+# 初始化但不修改 shell 配置文件
+leanup init --no-modify-path
 ```
 
 ### 管理 Lean 工具链
 
-安装 elan 后，您可以使用 `leanup elan` 命令来管理 Lean 工具链：
+初始化环境后，您可以使用 `leanup elan` 命令来管理 Lean 工具链：
 
 ```bash
 # 列出所有可用的工具链

@@ -1,5 +1,8 @@
 import click
 import sys
+import os
+import toml
+from pathlib import Path
 from loguru import logger
 from .elan_manager import ElanManager
 from .const import OS_TYPE
@@ -23,49 +26,100 @@ def main(verbose):
 
 
 @main.command()
-@click.argument('version', required=False)
 @click.option('--force', '-f', is_flag=True, help='Force reinstall even if elan exists')
-def install(version, force):
-    """Install elan toolchain manager
+@click.option('--no-modify-path', is_flag=True, help='Do not modify shell config files')
+def init(force, no_modify_path):
+    """Initialize Lean environment with elan toolchain manager
     
-    VERSION: Optional version number (installs latest version by default)
+    This command will:
+    1. Install the latest stable version of elan
+    2. Create .leanup directory for preferences
+    3. Configure environment variables in shell config files
     
     Examples:
-        leanup install          # Install latest version
-        leanup install v1.4.2   # Install specific version
-        leanup install --force  # Force reinstall
+        leanup init              # Initialize environment
+        leanup init --force      # Force reinstall
+        leanup init --no-modify-path  # Don't modify shell config files
     """
     manager = ElanManager()
     
-    click.echo(f"Installing elan for {OS_TYPE}...")
+    click.echo(f"Initializing Lean environment for {OS_TYPE}...")
     
-    if version:
-        click.echo(f"Specified version: {version}")
+    # 1. 安装最新稳定版 elan
+    success = manager.install_elan(force=force)
     
-    success = manager.install_elan(version=version, force=force)
-    
-    if success:
-        click.echo("elan installation successful!")
-        
-        # Show installation info
-        info = manager.get_status_info()
-        click.echo(f"Installation location: {info['executable']}")
-        click.echo(f"ELAN_HOME: {info['elan_home']}")
-        click.echo(f"Version: {info['version']}")
-        
-        # Hint for next steps
-        if OS_TYPE != 'Windows':
-            click.echo("\nNote: You may need to restart your terminal or run the following commands to update PATH:")
-            click.echo("   source ~/.bashrc")
-            click.echo("   # or")
-            click.echo("   source ~/.zshrc")
-        
-        click.echo("\nYou can now use the following commands:")
-        click.echo("   leanup elan --help      # Show elan help")
-        click.echo("   leanup status           # Check status")
-    else:
+    if not success:
         click.echo("elan installation failed!")
         sys.exit(1)
+    
+    # 2. 创建 .leanup 目录和偏好设置文件
+    leanup_dir = Path.home() / '.leanup'
+    leanup_dir.mkdir(exist_ok=True)
+    
+    # 创建偏好设置 toml 文件
+    config_path = leanup_dir / 'config.toml'
+    if not config_path.exists() or force:
+        config = {
+            'elan': {
+                'home': str(manager.elan_home),
+                'default_toolchain': 'stable'
+            },
+            'preferences': {
+                'auto_update_check': True,
+                'telemetry_enabled': False
+            }
+        }
+        
+        with open(config_path, 'w') as f:
+            toml.dump(config, f)
+        
+        click.echo(f"Created configuration file: {config_path}")
+    
+    # 3. 配置环境变量（如果用户没有禁用）
+    if not no_modify_path and OS_TYPE != 'Windows':
+        modified = False
+        
+        # 检查并更新 .bashrc
+        bashrc_path = Path.home() / '.bashrc'
+        if bashrc_path.exists():
+            modified |= _update_shell_config(bashrc_path, manager.elan_bin_dir)
+        
+        # 检查并更新 .zshrc
+        zshrc_path = Path.home() / '.zshrc'
+        if zshrc_path.exists():
+            modified |= _update_shell_config(zshrc_path, manager.elan_bin_dir)
+        
+        if modified:
+            click.echo("\nEnvironment variables configured in shell config files.")
+            click.echo("Please restart your terminal or run the following command to apply changes:")
+            click.echo("   source ~/.bashrc  # or source ~/.zshrc")
+    
+    # 显示安装信息
+    info = manager.get_status_info()
+    click.echo("\nelan installation successful!")
+    click.echo(f"Installation location: {info['executable']}")
+    click.echo(f"ELAN_HOME: {info['elan_home']}")
+    click.echo(f"Version: {info['version']}")
+    
+    # 提示下一步操作
+    click.echo("\nYou can now use the following commands:")
+    click.echo("   leanup elan --help      # Show elan help")
+    click.echo("   leanup status           # Check status")
+    click.echo("   leanup elan toolchain install stable  # Install stable toolchain")
+
+
+@main.command()
+@click.argument('version', required=False)
+@click.option('--force', '-f', is_flag=True, help='Force reinstall even if already installed')
+def install(version, force):
+    """Install specific Lean toolchain (placeholder for future use)
+    
+    This command is reserved for future use.
+    Currently, please use 'leanup init' to initialize the environment.
+    """
+    click.echo("The 'install' command is reserved for future use.")
+    click.echo("Please use 'leanup init' to initialize the environment,")
+    click.echo("and 'leanup elan toolchain install <toolchain>' to install specific toolchains.")
 
 
 @main.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
@@ -100,6 +154,13 @@ def status():
     
     click.echo(f"Operating System: {OS_TYPE}")
     
+    # 检查 .leanup 目录
+    leanup_dir = Path.home() / '.leanup'
+    if leanup_dir.exists():
+        click.echo(f"LeanUp Config: {leanup_dir / 'config.toml'}")
+    else:
+        click.echo("LeanUp Config: Not initialized (run 'leanup init')")
+    
     if info['installed']:
         click.echo("elan Status: Installed")
         click.echo(f"Version: {info['version']}")
@@ -116,7 +177,7 @@ def status():
             click.echo("Tip: Run 'leanup elan toolchain install stable' to install stable toolchain")
     else:
         click.echo("elan Status: Not Installed")
-        click.echo("Tip: Run 'leanup install' to install elan")
+        click.echo("Tip: Run 'leanup init' to initialize the environment")
 
 
 @main.command()
@@ -131,6 +192,31 @@ def version():
 def repo():
     """Manage Lean repository installations (experimental feature)"""
     pass
+
+
+def _update_shell_config(config_path, bin_dir):
+    """更新 shell 配置文件，添加 elan bin 目录到 PATH
+    
+    Args:
+        config_path: shell 配置文件路径
+        bin_dir: elan bin 目录路径
+        
+    Returns:
+        bool: 是否修改了配置文件
+    """
+    with open(config_path, 'r') as f:
+        content = f.read()
+    
+    # 检查是否已经配置了 PATH
+    path_str = f'export PATH="{bin_dir}:$PATH"'
+    if path_str in content:
+        return False
+    
+    # 添加到文件末尾
+    with open(config_path, 'a') as f:
+        f.write(f"\n# Added by LeanUp\n{path_str}\n")
+    
+    return True
 
 
 if __name__ == '__main__':

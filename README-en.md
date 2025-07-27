@@ -48,8 +48,8 @@ pip install -e .
 # Show help
 leanup --help
 
-# Install elan (Lean toolchain manager)
-leanup install
+# Initialize Lean environment (install elan toolchain manager)
+leanup init
 
 # Check status
 leanup status
@@ -63,22 +63,22 @@ leanup elan default stable
 
 ## 📖 Detailed Usage Guide
 
-### Installing elan
+### Initializing Environment
 
 ```bash
-# Install latest version of elan
-leanup install
+# Initialize environment with latest version of elan
+leanup init
 
-# Install specific version
-leanup install v1.4.2
+# Force reinitialization
+leanup init --force
 
-# Force reinstall
-leanup install --force
+# Initialize without modifying shell config files
+leanup init --no-modify-path
 ```
 
 ### Managing Lean Toolchains
 
-After installing elan, you can use `leanup elan` commands to manage Lean toolchains:
+After initializing the environment, you can use `leanup elan` commands to manage Lean toolchains:
 
 ```bash
 # List all available toolchains
