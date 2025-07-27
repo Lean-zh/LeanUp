@@ -2,6 +2,7 @@ import click
 import sys
 import os
 import toml
+import locale
 from pathlib import Path
 from loguru import logger
 from .elan_manager import ElanManager
@@ -11,6 +12,52 @@ from .const import OS_TYPE
 # 配置 loguru
 logger.remove()
 logger.add(sys.stderr, level="INFO", format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <level>{message}</level>")
+
+
+# 处理 Windows 下的编码问题
+def safe_echo(message):
+    """安全输出消息，处理 Windows 下的编码问题"""
+    try:
+        click.echo(message)
+    except UnicodeEncodeError:
+        # 在 Windows 下，如果遇到编码错误，尝试使用 UTF-8 编码输出
+        # 或者使用英文消息
+        if OS_TYPE == 'Windows':
+            try:
+                # 尝试设置控制台编码为 UTF-8
+                if hasattr(sys.stdout, 'buffer'):
+                    sys.stdout.buffer.write(message.encode('utf-8'))
+                    sys.stdout.buffer.write(b'\n')
+                    sys.stdout.buffer.flush()
+                else:
+                    # 如果无法使用 buffer，则使用英文替代消息
+                    click.echo(message.encode('ascii', 'replace').decode('ascii'))
+            except Exception:
+                # 最后的备选方案：使用纯英文
+                if "未安装" in message:
+                    click.echo("elan is not installed, installing automatically...")
+                elif "安装失败" in message:
+                    click.echo("elan installation failed! Cannot continue.")
+                elif "安装成功" in message:
+                    click.echo("elan installation successful! Continuing...")
+                elif "未指定工具链" in message:
+                    click.echo("No toolchain specified, will install stable version")
+                elif "正在安装工具链" in message:
+                    click.echo(f"Installing toolchain: {message.split(':')[-1].strip() if ':' in message else ''}")
+                elif "安装成功并设置为默认工具链" in message:
+                    click.echo("Toolchain installed successfully and set as default")
+                elif "安装成功" in message:
+                    click.echo("Toolchain installed successfully")
+                elif "安装失败" in message:
+                    click.echo("Toolchain installation failed")
+                elif "已安装的工具链" in message:
+                    click.echo("Installed toolchains:")
+                else:
+                    # 其他消息使用 ASCII 替换
+                    click.echo(message.encode('ascii', 'replace').decode('ascii'))
+        else:
+            # 非 Windows 系统直接抛出异常
+            raise
 
 
 @click.group()
@@ -238,17 +285,17 @@ def install(toolchain, force, no_default):
     
     # 检查 elan 是否已安装，如果未安装则自动安装
     if not manager.is_elan_installed():
-        click.echo("elan 未安装，正在自动安装...")
+        safe_echo("elan 未安装，正在自动安装...")
         success = manager.install_elan(force=force)
         if not success:
-            click.echo("elan 安装失败！无法继续安装工具链。")
+            safe_echo("elan 安装失败！无法继续安装工具链。")
             sys.exit(1)
-        click.echo("elan 安装成功！继续安装工具链...")
+        safe_echo("elan 安装成功！继续安装工具链...")
     
     # 如果未指定工具链，默认使用 stable
     if not toolchain:
         toolchain = "stable"
-        click.echo(f"未指定工具链，将安装默认的 stable 版本")
+        safe_echo(f"未指定工具链，将安装默认的 stable 版本")
     
     # 检查是否有已安装的工具链
     existing_toolchains = manager.get_installed_toolchains()
@@ -264,26 +311,26 @@ def install(toolchain, force, no_default):
         elif not default_toolchain:
             set_as_default = True
     
-    click.echo(f"正在安装工具链: {toolchain}")
+    safe_echo(f"正在安装工具链: {toolchain}")
     success = manager.install_toolchain(toolchain, set_as_default)
     
     if success:
         if set_as_default:
-            click.echo(f"工具链 {toolchain} 安装成功并设置为默认工具链")
+            safe_echo(f"工具链 {toolchain} 安装成功并设置为默认工具链")
         else:
-            click.echo(f"工具链 {toolchain} 安装成功")
+            safe_echo(f"工具链 {toolchain} 安装成功")
             
         # 显示当前状态
         info = manager.get_status_info()
         if info['toolchains']:
-            click.echo("\n已安装的工具链:")
+            safe_echo("\n已安装的工具链:")
             for tc in info['toolchains']:
                 if default_toolchain and tc == default_toolchain:
-                    click.echo(f"   • {tc} (default)")
+                    safe_echo(f"   • {tc} (default)")
                 else:
-                    click.echo(f"   • {tc}")
+                    safe_echo(f"   • {tc}")
     else:
-        click.echo(f"工具链 {toolchain} 安装失败")
+        safe_echo(f"工具链 {toolchain} 安装失败")
         sys.exit(1)
 
 
