@@ -66,7 +66,7 @@ LeanUp 是一个 Python 包装器，用于简化 Lean 数学证明语言环境�
    - 贡献指南和开发说明
 
 ### 代码已推送到 dev 分支
-- 仓库: https://github.com/LooKeng/LeanUp
+- 仓库: https://github.com/Lean-zh/LeanUp
 - 分支: dev
 - 提交 ID: 42d941a
 

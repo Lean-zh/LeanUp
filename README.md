@@ -4,11 +4,11 @@
     <a href="https://pypi.python.org/pypi/leanup">
         <img src="https://img.shields.io/pypi/v/leanup.svg" alt="PyPI version" />
     </a>
-    <a href="https://github.com/LooKeng/LeanUp/actions/workflows/ci.yaml">
-        <img src="https://github.com/LooKeng/LeanUp/actions/workflows/ci.yaml/badge.svg" alt="Tests" />
+    <a href="https://github.com/Lean-zh/LeanUp/actions/workflows/ci.yaml">
+        <img src="https://github.com/Lean-zh/LeanUp/actions/workflows/ci.yaml/badge.svg" alt="Tests" />
     </a>
-    <a href="https://codecov.io/gh/LooKeng/LeanUp">
-        <img src="https://codecov.io/gh/LooKeng/LeanUp/branch/main/graph/badge.svg" alt="Coverage" />
+    <a href="https://codecov.io/gh/Lean-zh/LeanUp">
+        <img src="https://codecov.io/gh/Lean-zh/LeanUp/branch/main/graph/badge.svg" alt="Coverage" />
     </a>
 </div>
 
@@ -37,7 +37,7 @@
 pip install -e /path/to/LeanUp
 
 # 或者克隆仓库后安装
-git clone https://github.com/LooKeng/LeanUp.git
+git clone https://github.com/Lean-zh/LeanUp.git
 cd LeanUp
 pip install -e .
 ```
@@ -117,7 +117,7 @@ leanup elan override unset
 
 ```bash
 # 克隆仓库
-git clone https://github.com/LooKeng/LeanUp.git
+git clone https://github.com/Lean-zh/LeanUp.git
 cd LeanUp
 
 # 安装开发依赖
