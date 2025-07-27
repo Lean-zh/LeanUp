@@ -107,21 +107,6 @@ def init(force, no_modify_path):
     click.echo("   leanup status           # Check status")
     click.echo("   leanup elan toolchain install stable  # Install stable toolchain")
 
-
-@main.command()
-@click.argument('version', required=False)
-@click.option('--force', '-f', is_flag=True, help='Force reinstall even if already installed')
-def install(version, force):
-    """Install specific Lean toolchain (placeholder for future use)
-    
-    This command is reserved for future use.
-    Currently, please use 'leanup init' to initialize the environment.
-    """
-    click.echo("The 'install' command is reserved for future use.")
-    click.echo("Please use 'leanup init' to initialize the environment,")
-    click.echo("and 'leanup elan toolchain install <toolchain>' to install specific toolchains.")
-
-
 @main.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
 @click.pass_context
 def elan(ctx):
