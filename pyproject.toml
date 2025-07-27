@@ -24,6 +24,7 @@ dependencies = [
   "platformdirs",  # Platform-specific directories
   "loguru",  # Logging
   "requests",  # HTTP requests for downloading
+  "toml",  # TOML parser
 ]
 
 [project.optional-dependencies]

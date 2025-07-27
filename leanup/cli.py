@@ -219,6 +219,168 @@ def _update_shell_config(config_path, bin_dir):
     return True
 
 
+@main.command()
+@click.argument('toolchain', required=False)
+@click.option('--force', '-f', is_flag=True, help='Force reinstall even if already installed')
+@click.option('--no-default', is_flag=True, help='Do not set as default toolchain')
+def install(toolchain, force, no_default):
+    """Install specific Lean toolchain
+    
+    This command installs a specific Lean toolchain using elan.
+    If no toolchain is specified, it will install the stable version.
+    
+    Examples:
+        leanup install                # Install stable toolchain
+        leanup install leanprover/lean4:stable  # Install specific toolchain
+        leanup install --no-default   # Install without setting as default
+    """
+    manager = ElanManager()
+    
+    # 检查 elan 是否已安装
+    if not manager.is_elan_installed():
+        click.echo("elan 未安装。请先运行 'leanup init' 初始化环境。")
+        click.echo("运行 'leanup init --help' 获取更多信息。")
+        sys.exit(1)
+    
+    # 如果未指定工具链，默认使用 stable
+    if not toolchain:
+        toolchain = "stable"
+        click.echo(f"未指定工具链，将安装默认的 stable 版本")
+    
+    # 检查是否有已安装的工具链
+    existing_toolchains = manager.get_installed_toolchains()
+    default_toolchain = manager.get_default_toolchain()
+    
+    # 确定是否设置为默认工具链
+    set_as_default = False
+    if not no_default:
+        # 如果是首次安装工具链或强制安装，则设置为默认
+        if not existing_toolchains or force:
+            set_as_default = True
+        # 如果当前没有默认工具链，也设置为默认
+        elif not default_toolchain:
+            set_as_default = True
+    
+    click.echo(f"正在安装工具链: {toolchain}")
+    success = manager.install_toolchain(toolchain, set_as_default)
+    
+    if success:
+        if set_as_default:
+            click.echo(f"工具链 {toolchain} 安装成功并设置为默认工具链")
+        else:
+            click.echo(f"工具链 {toolchain} 安装成功")
+            
+        # 显示当前状态
+        info = manager.get_status_info()
+        if info['toolchains']:
+            click.echo("\n已安装的工具链:")
+            for tc in info['toolchains']:
+                if default_toolchain and tc == default_toolchain:
+                    click.echo(f"   • {tc} (default)")
+                else:
+                    click.echo(f"   • {tc}")
+    else:
+        click.echo(f"工具链 {toolchain} 安装失败")
+        sys.exit(1)
+
+
+@main.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
+@click.pass_context
+def elan(ctx):
+    """Proxy elan commands
+    
+    Pass all arguments directly to the elan tool. This allows you to use leanup elan just like native elan.
+    
+    Examples:
+        leanup elan --help                    # Show elan help
+        leanup elan toolchain list            # List installed toolchains
+        leanup elan toolchain install stable  # Install stable toolchain
+        leanup elan default stable            # Set default toolchain
+        leanup elan update                    # Update toolchains
+    """
+    manager = ElanManager()
+    
+    # 传递所有额外参数给 elan
+    exit_code = manager.proxy_elan_command(ctx.args)
+    sys.exit(exit_code)
+
+
+@main.command()
+def status():
+    """Show LeanUp and elan status information"""
+    manager = ElanManager()
+    info = manager.get_status_info()
+    
+    click.echo("LeanUp Status Information")
+    click.echo("=" * 50)
+    
+    click.echo(f"Operating System: {OS_TYPE}")
+    
+    # 检查 .leanup 目录
+    leanup_dir = Path.home() / '.leanup'
+    if leanup_dir.exists():
+        click.echo(f"LeanUp Config: {leanup_dir / 'config.toml'}")
+    else:
+        click.echo("LeanUp Config: Not initialized (run 'leanup init')")
+    
+    if info['installed']:
+        click.echo("elan Status: Installed")
+        click.echo(f"Version: {info['version']}")
+        click.echo(f"Executable: {info['executable']}")
+        click.echo(f"ELAN_HOME: {info['elan_home']}")
+        
+        toolchains = info['toolchains']
+        if toolchains:
+            click.echo(f"Installed Toolchains ({len(toolchains)}):")
+            for toolchain in toolchains:
+                click.echo(f"   • {toolchain}")
+        else:
+            click.echo("Installed Toolchains: None")
+            click.echo("Tip: Run 'leanup elan toolchain install stable' to install stable toolchain")
+    else:
+        click.echo("elan Status: Not Installed")
+        click.echo("Tip: Run 'leanup init' to initialize the environment")
+
+
+@main.command()
+def version():
+    """Show LeanUp version information"""
+    from . import __version__
+    click.echo(f"LeanUp Version: {__version__}")
+
+
+# 保留原有的 repo 组以保持向后兼容
+@main.group()
+def repo():
+    """Manage Lean repository installations (experimental feature)"""
+    pass
+
+
+def _update_shell_config(config_path, bin_dir):
+    """更新 shell 配置文件，添加 elan bin 目录到 PATH
+    
+    Args:
+        config_path: shell 配置文件路径
+        bin_dir: elan bin 目录路径
+        
+    Returns:
+        bool: 是否修改了配置文件
+    """
+    with open(config_path, 'r') as f:
+        content = f.read()
+    
+    # 检查是否已经配置了 PATH
+    path_str = f'export PATH="{bin_dir}:$PATH"'
+    if path_str in content:
+        return False
+    
+    # 添加到文件末尾
+    with open(config_path, 'a') as f:
+        f.write(f"\n# Added by LeanUp\n{path_str}\n")
+    
+    return True
+
+
 if __name__ == '__main__':
     main()
 

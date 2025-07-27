@@ -5,6 +5,7 @@ Elan 工具链管理器
 
 import os
 import requests
+import toml  # 添加这一行
 from pathlib import Path
 from typing import Optional, List, Dict
 import subprocess
@@ -234,3 +235,54 @@ class ElanManager:
             info['toolchains'] = self.get_installed_toolchains()
         
         return info
+    
+    def get_default_toolchain(self) -> Optional[str]:
+        """获取当前默认工具链"""
+        settings_path = self.elan_home / 'settings.toml'
+        if not settings_path.exists():
+            return None
+            
+        try:
+            settings = toml.load(settings_path)
+            return settings.get('default_toolchain')
+        except Exception as e:
+            logger.error(f"读取默认工具链失败: {e}")
+            return None
+    
+    def install_toolchain(self, toolchain: str, set_as_default: bool = False) -> bool:
+        """安装特定工具链
+        
+        Args:
+            toolchain: 要安装的工具链名称或版本
+            set_as_default: 是否设置为默认工具链
+            
+        Returns:
+            bool: 安装是否成功
+        """
+        elan_path = self.get_elan_executable()
+        if not elan_path:
+            logger.error("elan 未安装，请先运行 'leanup init' 初始化环境")
+            return False
+            
+        try:
+            # 安装工具链
+            cmd = [str(elan_path), 'toolchain', 'install', toolchain]
+            output, error, code = self.executor.execute(cmd)
+            
+            if code != 0:
+                logger.error(f"安装工具链失败: {error}")
+                return False
+                
+            # 如果需要，设置为默认工具链
+            if set_as_default:
+                cmd = [str(elan_path), 'default', toolchain]
+                output, error, code = self.executor.execute(cmd)
+                
+                if code != 0:
+                    logger.error(f"设置默认工具链失败: {error}")
+                    return False
+                    
+            return True
+        except Exception as e:
+            logger.error(f"安装工具链时发生错误: {e}")
+            return False
