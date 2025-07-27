@@ -236,11 +236,14 @@ def install(toolchain, force, no_default):
     """
     manager = ElanManager()
     
-    # 检查 elan 是否已安装
+    # 检查 elan 是否已安装，如果未安装则自动安装
     if not manager.is_elan_installed():
-        click.echo("elan 未安装。请先运行 'leanup init' 初始化环境。")
-        click.echo("运行 'leanup init --help' 获取更多信息。")
-        sys.exit(1)
+        click.echo("elan 未安装，正在自动安装...")
+        success = manager.install_elan(force=force)
+        if not success:
+            click.echo("elan 安装失败！无法继续安装工具链。")
+            sys.exit(1)
+        click.echo("elan 安装成功！继续安装工具链...")
     
     # 如果未指定工具链，默认使用 stable
     if not toolchain:

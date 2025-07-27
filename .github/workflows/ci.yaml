@@ -42,7 +42,7 @@ jobs:
         leanup --help
         leanup version
         leanup status
-        leanup init
+        leanup install
     
     - name: Test with pytest and coverage
       run: |
