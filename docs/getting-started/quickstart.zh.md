@@ -53,14 +53,28 @@ leanup elan default stable
 ### 仓库管理
 
 ```bash
-# 安装仓库（格式：owner/repo）
+# 安装仓库（格式：owner/repo 或仅仓库名）
 leanup repo install leanprover-community/mathlib4
+leanup repo install mathlib4
 
 # 使用特定选项安装
-leanup repo install leanprover-community/mathlib4 --branch main --force
+leanup repo install mathlib4 --branch main --force
 
 # 安装到指定目录
-leanup repo install leanprover-community/mathlib4 --dest-dir ./my-mathlib
+leanup repo install mathlib4 --dest-dir ./my-repos
+
+# 自定义目标名称
+leanup repo install mathlib4 --dest-name my-mathlib
+
+# 从自定义源安装
+leanup repo install mathlib4 --source https://gitlab.com
+
+# 控制构建过程
+leanup repo install mathlib4 --lake-update --lake-build
+leanup repo install mathlib4 --no-lake-update --no-lake-build
+
+# 构建特定包
+leanup repo install mathlib4 --build-packages "REPL,REPL.Main"
 
 # 列出已安装的仓库
 leanup repo list
@@ -68,8 +82,43 @@ leanup repo list
 # 使用过滤器列出仓库
 leanup repo list --name mathlib
 
+# 在指定目录中列出仓库
+leanup repo list --search-dir /path/to/repos
+
 # 交互式安装
-leanup repo install -i
+leanup repo install --interactive
+```
+
+## 使用 InstallConfig
+
+`InstallConfig` 类提供了编程方式配置仓库安装：
+
+```python
+from pathlib import Path
+from leanup.repo.manager import InstallConfig
+
+# 创建安装配置
+config = InstallConfig(
+    suffix="leanprover-community/mathlib4",
+    source="https://github.com",
+    branch="main",
+    dest_dir=Path("/path/to/repos"),
+    dest_name="mathlib4_main",
+    lake_update=True,
+    lake_build=True,
+    build_packages=["REPL", "REPL.Main"],
+    override=False
+)
+
+# 检查配置是否有效
+if config.is_valid:
+    print(f"将安装到: {config.dest_path}")
+    
+# 执行安装
+config.install()
+
+# 更新配置
+new_config = config.update(branch="v4.3.0", override=True)
 ```
 
 ## 使用 RepoManager
@@ -77,7 +126,7 @@ leanup repo install -i
 `RepoManager` 类提供了管理目录和 git 仓库的功能：
 
 ```python
-from leanup.repo import RepoManager
+from leanup.repo.manager import RepoManager
 
 # 创建仓库管理器
 repo = RepoManager("/path/to/your/directory")
@@ -87,21 +136,32 @@ if repo.is_gitrepo:
     print("这是一个 git 仓库")
     status = repo.git_status()
     print(f"当前分支: {status['branch']}")
+    print(f"是否有修改: {status['is_dirty']}")
+
+# 克隆仓库
+success = repo.clone_from(
+    "https://github.com/owner/repo.git", 
+    branch="main", 
+    depth=1
+)
 
 # 文件操作
 repo.write_file("test.txt", "Hello world")
 content = repo.read_file("test.txt")
-repo.edit_file("test.txt", "world", "universe")
+repo.edit_file("test.txt", "world", "universe", use_regex=False)
 
 # 列出文件和目录
 files = repo.list_files("*.lean")
 dirs = repo.list_dirs()
+
+# 执行命令
+stdout, stderr, returncode = repo.execute_command(["ls", "-la"])
 ```
 
 ## 使用 LeanRepo 管理 Lean 项目
 
 ```python
-from leanup.repo import LeanRepo
+from leanup.repo.manager import LeanRepo
 
 # 创建 Lean 仓库管理器
 lean_repo = LeanRepo("/path/to/lean/project")
@@ -109,10 +169,24 @@ lean_repo = LeanRepo("/path/to/lean/project")
 # 获取项目信息
 info = lean_repo.get_project_info()
 print(f"Lean 版本: {info['lean_version']}")
-print(f"有 lakefile: {info['has_lakefile_toml']}")
+print(f"有 lakefile.toml: {info['has_lakefile_toml']}")
+print(f"有 lakefile.lean: {info['has_lakefile_lean']}")
+print(f"有 lake-manifest.json: {info['has_lake_manifest']}")
+print(f"构建目录存在: {info['build_dir_exists']}")
 
-# Lake 操作（直接执行命令）
-stdout, stderr, returncode = lean_repo.lake(["build"])
-stdout, stderr, returncode = lean_repo.lake_update()
-stdout, stderr, returncode = lean_repo.lake_build()
+# Lake 操作
+lean_repo.lake_init("my_project", "std", "lean")
+lean_repo.lake_update()
+lean_repo.lake_build("MyTarget")
+lean_repo.lake_env_lean("Main.lean", json=True)
+lean_repo.lake_clean()
+lean_repo.lake_test()
+
+# 使用配置安装
+config = InstallConfig(
+    suffix="leanprover-community/mathlib4",
+    lake_update=True,
+    lake_build=False
+)
+lean_repo.install(config)
 ```

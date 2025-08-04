@@ -99,10 +99,10 @@ leanup repo install mathlib4
 leanup repo install mathlib4 --interactive
 
 # 从指定源安装
-leanup repo install mathlib4 --source github
+leanup repo install mathlib4 --source https://github.com
 
-# 从完整 URL 安装
-leanup repo install --url https://github.com/leanprover-community/mathlib4.git
+# 从完整 URL 安装（使用 suffix 参数）
+leanup repo install leanprover-community/mathlib4
 
 # 安装特定分支或标签
 leanup repo install mathlib4 --branch v4.3.0
@@ -113,21 +113,104 @@ leanup repo install mathlib4 --force
 # 安装到自定义目录
 leanup repo install mathlib4 --dest-dir /path/to/custom/dir
 
+# 自定义目标名称
+leanup repo install mathlib4 --dest-name my-mathlib
+
+# 控制构建选项
+leanup repo install mathlib4 --lake-update --lake-build
+leanup repo install mathlib4 --no-lake-update --no-lake-build
+
+# 指定要构建的包
+leanup repo install mathlib4 --build-packages "REPL,REPL.Main"
+
 # 列出已安装的仓库
 leanup repo list
+
+# 在指定目录中搜索仓库
+leanup repo list --search-dir /path/to/repos
+
+# 按名称过滤仓库
+leanup repo list --name mathlib
 ```
 
 ### 交互式安装
 
 使用 `leanup repo install` 的 `--interactive` 标志时，您可以配置：
 
-- 仓库前缀（如 `leanprover-community/`）
+- 仓库名称（必需）
 - 仓库源的基础 URL
-- 存储仓库的缓存目录
+- 分支或标签
+- 存储仓库的目标目录
+- 自定义目标名称
 - 是否在克隆后运行 `lake update`
 - 是否在克隆后运行 `lake build`
 - 要编译的特定构建包
+- 是否覆盖现有目录
 
+### 编程接口
+
+#### 使用 InstallConfig
+
+```python
+from leanup.repo.manager import InstallConfig
+
+# 创建安装配置
+config = InstallConfig(
+    suffix="leanprover-community/mathlib4",
+    source="https://github.com",
+    branch="main",
+    dest_dir=Path("/path/to/repos"),
+    dest_name="mathlib4_main",
+    lake_update=True,
+    lake_build=True,
+    build_packages=["REPL", "REPL.Main"],
+    override=False
+)
+
+# 执行安装
+config.install()
+```
+
+#### 使用 RepoManager
+
+```python
+from leanup.repo.manager import RepoManager
+
+# 创建仓库管理器
+repo = RepoManager("/path/to/directory")
+
+# 克隆仓库
+repo.clone_from("https://github.com/owner/repo.git", branch="main")
+
+# 文件操作
+repo.write_file("test.txt", "Hello world")
+content = repo.read_file("test.txt")
+repo.edit_file("test.txt", "world", "universe")
+
+# 列出文件和目录
+files = repo.list_files("*.lean")
+dirs = repo.list_dirs()
+```
+
+#### 使用 LeanRepo
+
+```python
+from leanup.repo.manager import LeanRepo
+
+# 创建 Lean 仓库管理器
+lean_repo = LeanRepo("/path/to/lean/project")
+
+# 获取项目信息
+info = lean_repo.get_project_info()
+print(f"Lean 版本: {info['lean_version']}")
+print(f"有 lakefile: {info['has_lakefile_toml']}")
+
+# Lake 操作
+stdout, stderr, returncode = lean_repo.lake_init("my_project", "std")
+stdout, stderr, returncode = lean_repo.lake_update()
+stdout, stderr, returncode = lean_repo.lake_build()
+stdout, stderr, returncode = lean_repo.lake_env_lean("Main.lean")
+```
 
 ## 🛠️ 开发
 

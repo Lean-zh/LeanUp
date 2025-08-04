@@ -4,7 +4,60 @@ from unittest.mock import patch, Mock
 from pathlib import Path
 import tempfile
 
-from leanup.repo.manager import LeanRepo, RepoManager
+from leanup.repo.manager import LeanRepo, InstallConfig
+
+
+class TestInstallConfig:
+    """Test cases for InstallConfig class"""
+    
+    def test_install_config_basic(self):
+        """Test basic InstallConfig initialization"""
+        config = InstallConfig(
+            suffix='test/repo',
+            source='https://github.com'
+        )
+        
+        assert config.suffix == 'test/repo'
+        assert config.source == 'https://github.com'
+        assert config.url == 'https://github.com/test/repo'
+        assert config.is_valid is True
+    
+    def test_install_config_with_url(self):
+        """Test InstallConfig with direct URL"""
+        config = InstallConfig(
+            url='https://gitlab.com/user/project.git'
+        )
+        
+        assert config.url == 'https://gitlab.com/user/project.git'
+        assert config.suffix == 'project.git'
+        assert config.is_valid is True
+    
+    def test_install_config_dest_name_generation(self):
+        """Test destination name generation"""
+        config = InstallConfig(
+            suffix='user/repo',
+            branch='main'
+        )
+        
+        assert config.dest_name == 'user_repo_main'
+    
+    def test_install_config_copy_and_update(self):
+        """Test config copy and update methods"""
+        config = InstallConfig(
+            suffix='test/repo',
+            lake_update=False
+        )
+        
+        # Test copy
+        config_copy = config.copy()
+        assert config_copy.suffix == config.suffix
+        assert config_copy is not config
+        
+        # Test update
+        updated_config = config.update(lake_update=True, branch='main')
+        assert updated_config.lake_update is True
+        assert updated_config.branch == 'main'
+        assert config.lake_update is False  # Original unchanged
 
 
 class TestRepoManager:
@@ -13,7 +66,7 @@ class TestRepoManager:
     def setup_method(self):
         """Setup test environment"""
         self.temp_dir = tempfile.mkdtemp()
-        self.repo_manager = RepoManager(self.temp_dir)
+        self.repo_manager = LeanRepo(self.temp_dir)
     
     def teardown_method(self):
         """Cleanup test environment"""
@@ -23,6 +76,25 @@ class TestRepoManager:
         """Test RepoManager initialization"""
         assert self.repo_manager.cwd == Path(self.temp_dir).resolve()
         assert not self.repo_manager.is_gitrepo
+    
+    @patch('leanup.repo.manager.execute_command')
+    def test_clone_from_success(self, mock_execute):
+        """Test successful repository cloning"""
+        mock_execute.return_value = ('', '', 0)
+        
+        result = self.repo_manager.clone_from('https://github.com/test/repo.git')
+        
+        assert result is True
+        mock_execute.assert_called_once()
+    
+    @patch('leanup.repo.manager.execute_command')
+    def test_clone_from_failure(self, mock_execute):
+        """Test failed repository cloning"""
+        mock_execute.return_value = ('', 'error', 1)
+        
+        result = self.repo_manager.clone_from('https://github.com/test/repo.git')
+        
+        assert result is False
     
     def test_read_write_file(self):
         """Test file read/write operations"""
@@ -73,6 +145,32 @@ class TestRepoManager:
         dirs = self.repo_manager.list_dirs()
         assert len(dirs) == 1
         assert dirs[0].name == "subdir"
+    
+    @patch('leanup.repo.manager.LeanRepo')
+    def test_install_method(self, mock_lean_repo):
+        """Test RepoManager install method"""
+        # Mock LeanRepo
+        mock_repo = Mock()
+        mock_repo.clone_from.return_value = True
+        mock_repo.lake_update.return_value = ("output", "", 0)
+        mock_repo.lake_build.return_value = ("output", "", 0)
+        mock_lean_repo.return_value = mock_repo
+        
+        # Create config
+        config = InstallConfig(
+            url='https://github.com/test/repo.git',
+            dest_dir=Path(self.temp_dir),
+            dest_name='test_repo',
+            lake_update=True,
+            lake_build=True
+        )
+        
+        result = self.repo_manager.install(config)
+        
+        assert result is True
+        mock_repo.clone_from.assert_called_once()
+        mock_repo.lake_update.assert_called_once()
+        mock_repo.lake_build.assert_called_once()
 
 
 class TestLeanRepo:
@@ -100,6 +198,27 @@ class TestLeanRepo:
         """Test reading lean-toolchain file when it doesn't exist"""
         result = self.lean_repo.get_lean_toolchain()
         assert result is None
+    
+    @patch('leanup.repo.manager.execute_command')
+    def test_lake_init(self, mock_execute):
+        """Test lake init command"""
+        mock_execute.return_value = ('output', '', 0)
+        
+        result = self.lean_repo.lake_init('test_project', 'std')
+        
+        assert result == ('output', '', 0)
+        mock_execute.assert_called_once_with(['lake', 'init', 'test_project', 'std'], cwd=str(self.lean_repo.cwd))
+    
+    @patch('leanup.repo.manager.execute_command')
+    def test_lake_env_lean(self, mock_execute):
+        """Test lake env lean command"""
+        mock_execute.return_value = ('output', '', 0)
+        
+        result = self.lean_repo.lake_env_lean('test.lean', json=True, nproc=4)
+        
+        assert result == ('output', '', 0)
+        expected_cmd = ['lake', 'env', 'lean', '--json', '-j', '4', 'test.lean']
+        mock_execute.assert_called_once_with(expected_cmd, cwd=str(self.lean_repo.cwd))
     
     def test_get_project_info(self):
         """Test getting project information"""
