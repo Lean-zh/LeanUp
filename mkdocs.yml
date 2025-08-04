@@ -1,7 +1,7 @@
 site_name: LeanUp Documentation
 site_description: Python package for Lean Environment Management
 site_author: Lean-zh Community
-site_url: https://github.com/Lean-zh/LeanUp
+site_url: https://www.leanprover.cn/LeanUp/
 
 repo_name: Lean-zh/LeanUp
 repo_url: https://github.com/Lean-zh/LeanUp
@@ -89,7 +89,7 @@ extra:
       link: /
       lang: en
     - name: 中文
-      link: /Lean-zh/LeanUp/zh/
+      link: /LeanUp/zh/
       lang: zh
   social:
     - icon: fontawesome/brands/github
