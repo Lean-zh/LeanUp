@@ -6,7 +6,6 @@ from leanup.const import LEANUP_CACHE_DIR, LEANUP_CONFIG_DIR
 
 logger = setup_logger("config_manager")
 
-
 class ConfigManager:
     """Manage leanup configuration"""
     

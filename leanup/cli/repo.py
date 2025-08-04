@@ -6,7 +6,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from leanup.const import LEANUP_CACHE_DIR
-from leanup.repo.manager import RepoManager, LeanRepo
+from leanup.repo.manager import RepoManager, LeanRepo, InstallConfig
 from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("repo_cli")
@@ -18,117 +18,70 @@ def repo():
 
 
 @repo.command()
-@click.argument('repository', required=False)
+@click.argument('suffix', required=False)
 @click.option('--source', '-s', help='Repository source', default='https://github.com')
 @click.option('--branch', '-b', help='Branch or tag to clone')
 @click.option('--force', '-f', is_flag=True, help='Replace existing directory')
-@click.option('--dest-dir', '-d', help='Destination directory', type=click.Path(path_type=Path))
+@click.option('--dest-dir', '-d', help='Destination directory', type=click.Path(path_type=Path), default=LEANUP_CACHE_DIR / "repos")
+@click.option('--dest-name', '-n', help='Destination name')
 @click.option('--interactive', '-i', is_flag=True, help='Interactive mode')
-def install(repository: str, source: str, branch: Optional[str], force: bool,
-            dest_dir: Optional[Path], interactive: bool):
+@click.option('--lake-update', is_flag=True, help='Run lake update after cloning', default=True)
+@click.option('--lake-build', is_flag=True, help='Run lake build after cloning', default=True)
+@click.option('--build-packages', help='Packages to build after cloning')
+def install(suffix: str, source: str, branch: Optional[str], force: bool,
+            dest_dir: Optional[Path], dest_name: Optional[str], interactive: bool, lake_update: bool, lake_build: bool, build_packages: str):
     """Install a repository"""
     if interactive:
-        if repository:
-            click.echo(f"Repository name: {repository}")
-        else:
-            repository = click.prompt("Repository name(required)", type=str)
+        suffix = click.prompt("Repository name(required)", type=str, default=suffix)
         source = click.prompt("Repository source", type=str, default=source)
         branch = click.prompt("Branch or tag", type=str, default=branch or "")
-    
-    if not repository:
+        config = InstallConfig(
+            suffix=suffix,
+            source=source,
+            branch=branch
+        )
+        if dest_dir:
+            config.dest_dir = dest_dir
+        config.dest_dir = click.prompt("Destination directory", type=click.Path(path_type=Path), default=config.dest_dir)
+        config.dest_name = click.prompt("Destination name", type=str, default=config.dest_name)
+        config.lake_update = click.confirm("Run lake update after cloning?", default=lake_update)
+        config.lake_build = click.confirm("Run lake build after cloning?", default=lake_build)
+        build_packages = click.prompt("Packages to build after cloning(e.g. REPL,REPL.Main)", type=str, default=build_packages or "" )
+        if build_packages:
+            config.build_packages = build_packages.split(',')
+        if config.dest_path.exists():
+            config.override = click.confirm(f"Repository {config.dest_name} already exists in {config.dest_dir}. Override?", default=False)
+            if not config.override:
+                click.echo(f"Aborted.", err=True)
+                sys.exit(1)
+    else:
+        config = InstallConfig(
+            suffix=suffix,
+            source=source,
+            branch=branch,
+            dest_dir=dest_dir,
+            dest_name=dest_name,
+            lake_update=lake_update,
+            lake_build=lake_build,
+            build_packages=build_packages,
+            override=force
+        )
+    if not config.is_valid:
         click.echo("Error: Repository name is required", err=True)
         sys.exit(1)
-
-    # Determine URL
-    repo_url = f"{source.rstrip('/')}/{repository}"
-    # Determine destination directory
-    if dest_dir:
-        dest_path = dest_dir
-    else:
-        repository = repository.replace('/', '_').lower()
-        # Default to current directory + repo name
-        dir_name = f"{repository}_{branch}" if branch else repository
-        dest_path = LEANUP_CACHE_DIR / "repos" / dir_name
-    if interactive:
-        dest_path = click.prompt("Destination directory", type=click.Path(path_type=Path), default=dest_path)
-    
-    # Check if directory exists
-    if dest_path.exists():
-        if interactive:
-            force = click.confirm("Repository already exists. Replace it?", default=force)
-        if not force:
-            click.echo(f"Directory {dest_path} already exists. Use --force to replace.", err=True)
-            sys.exit(1)
-        else:
-            shutil.rmtree(dest_path)
-            click.echo(f"Removed existing directory: {dest_path}")
-    
-    # Create parent directories
-    dest_path.mkdir(parents=True, exist_ok=True)
-    
-    # Clone repository
-    click.echo(f"Cloning {repo_url} to {dest_path}...")
-    repo_manager = RepoManager(dest_path)
-    
-    success = repo_manager.clone_from(
-        url=repo_url,
-        branch=branch,
-        depth=1  # Shallow clone for faster download
-    )
-    
-    if success:
-        click.echo(f"✓ Repository cloned successfully to {dest_path}")
-        
-        # Check if it's a Lean project and run post-install commands
-        if (dest_path / "lakefile.lean").exists() or (dest_path / "lakefile.toml").exists():
-            click.echo("📦 Detected Lean project")
-            
-            # Show lean-toolchain if exists
-            toolchain_file = dest_path / "lean-toolchain"
-            if toolchain_file.exists():
-                toolchain = toolchain_file.read_text().strip()
-                click.echo(f"🔧 Lean toolchain: {toolchain}")
-            
-            # Execute post-install commands
-            lean_repo = LeanRepo(dest_path)
-            
-            # Lake update
-            click.echo("Executing lake update...")
-            try:
-                stdout, stderr, returncode = lean_repo.lake_update()
-                if returncode == 0:
-                    click.echo("✓ lake update completed")
-                else:
-                    click.echo(f"⚠ lake update failed: {stderr}", err=True)
-            except Exception as e:
-                click.echo(f"⚠ lake update error: {e}", err=True)
-            
-            # Lake build
-            click.echo("Building project...")
-            try:
-                stdout, stderr, returncode = lean_repo.lake_build()
-                if returncode == 0:
-                    click.echo("✓ Build completed")
-                else:
-                    click.echo(f"⚠ Build failed: {stderr}", err=True)
-            except Exception as e:
-                click.echo(f"⚠ Build error: {e}", err=True)
-    else:
-        click.echo("✗ Failed to clone repository", err=True)
-        sys.exit(1)
-
+    config.install()
 
 @repo.command()
 @click.option('--name', '-n', help='Filter by repository name')
-@click.option('--search-dir', '-d', help='Directory to search for repositories', 
+@click.option('--search-dir', '-s', help='Directory to search for repositories', 
               type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
               default=LEANUP_CACHE_DIR / "repos")
 def list(name: Optional[str], search_dir: Path):
     """List repositories in the specified directory"""
     
     if not search_dir.exists():
-        click.echo(f"Directory {search_dir} doesn't exist.")
-        return
+        click.echo(f"Directory {search_dir} doesn't exist.", err=True)
+        sys.exit(1)
     names = [dir.name for dir in search_dir.iterdir() if dir.is_dir()]
 
     if name:

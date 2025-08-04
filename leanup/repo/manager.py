@@ -1,16 +1,77 @@
-import subprocess
+from dataclasses import dataclass
+import shutil
 import re
 from pathlib import Path
 from token import OP
 from typing import Optional, Union, List, Dict, Any, Tuple
 import git
 import toml
+from leanup.const import OS_TYPE, LEANUP_CACHE_DIR
 from leanup.utils.basic import execute_command
 from leanup.utils.custom_logger import setup_logger
-from .elan import ElanManager
-
 
 logger = setup_logger("repo_manager")
+
+
+# Installation Config
+@dataclass
+class InstallConfig:
+    suffix: Optional[str]=None
+    source: Optional[str]='https://github.com'
+    url: Optional[str]=None
+    branch: Optional[str]=None
+    dest_name: Optional[str]=None
+    dest_dir: Optional[Path]=None
+    build_packages: Optional[List[str]]=None
+    lake_update: bool = False
+    lake_build:bool = False
+    override: bool = False
+
+    def __post_init__(self):
+        if self.url is None:
+            self.url = f"{self.source}/{self.suffix}"
+        if self.suffix is None:
+            self.suffix = self.url.split('/')[-1]
+        if self.dest_dir is None:
+            self.dest_dir = LEANUP_CACHE_DIR / "repos"
+        if self.dest_name is None:
+            self.dest_name = self.suffix.replace('/', '_').lower()
+            if self.branch:
+                self.dest_name += f"_{self.branch}"
+        if self.build_packages is None:
+            self.build_packages = []
+
+    @property
+    def is_valid(self):
+        return self.url is not None
+
+    @property
+    def dest_path(self)->Path:
+        return self.dest_dir / self.dest_name
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get config value"""
+        return getattr(self, key, default)
+    
+    def update(self, **kwargs):
+        """Update config
+
+        Args:
+            kwargs: Additional keyword arguments for lake_init
+        """
+        config = self.copy()
+        for k, v in kwargs.items():
+            if v is not None:
+                setattr(config, k, v)
+        return config
+    
+    def copy(self) -> 'InstallConfig':
+        """Copy config"""
+        return InstallConfig(**self.__dict__)
+
+    def install(self):
+        repo = LeanRepo(self.dest_path)
+        repo.install(self)
 
 class RepoManager:
     """Class for managing directory operations and git functionality."""
@@ -65,6 +126,7 @@ class RepoManager:
                 cmd.extend(["--depth", str(depth)])
                 
             # Execute clone command
+            self.cwd.mkdir(parents=True, exist_ok=True)
             stdout, stderr, returncode = execute_command(cmd, cwd=str(self.cwd))
             
             if returncode == 0:
@@ -497,4 +559,46 @@ class LeanRepo(RepoManager):
             'build_dir_exists': (self.cwd / ".lake").exists(),
         }
         return info
-
+    
+    def install(self, config: InstallConfig, **kwargs):
+        """Install Lean repository.
+        
+        Args:
+            config: InstallConfig object
+            kwargs: Additional keyword arguments for lake_init
+        """
+        config = config.update(**kwargs)
+        assert config.url, "Repository URL is required"
+        repo_dir = config.dest_dir / config.dest_name
+        if repo_dir.exists():
+            if config.override:
+                shutil.rmtree(repo_dir)
+                logger.info(f"Removed existing directory: {repo_dir}")
+            else:
+                logger.info(f"Repository already exists at {repo_dir}")
+                return True
+        repo = LeanRepo(repo_dir)
+        success = repo.clone_from(
+            url=config.url,
+            branch=config.branch,
+            depth=1  # Shallow clone for faster download
+        )
+        if not success:
+            logger.error(f"Failed to clone repository: {config.url}")
+            return False
+        if config.lake_update:
+            if not repo.lake_update():
+                logger.warning(f"Failed to update repository: {config.url}")
+            else:
+                logger.info(f"Successfully cloned repository: {config.url}")
+        if config.lake_build:
+            if not repo.lake_build():
+                logger.warning(f"Failed to build repository: {config.url}")
+            else:
+                logger.info(f"Successfully built repository: {config.url}")
+        if config.build_packages:
+            for package in config.build_packages:
+                logger.info(f"Building package: {package}")
+                if not repo.lake_build(package):
+                    logger.warning(f"Failed to build package: {package}")
+        return True
