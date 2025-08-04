@@ -481,15 +481,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architecture
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -665,15 +656,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architecture
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -711,12 +693,9 @@
 <h2 id="features">Features</h2>
 <ul>
 <li><strong>🔧 elan Management</strong>: Install and manage the Lean toolchain manager elan with a single command</li>
-<li><strong>📦 Repository Management</strong>: Install and manage Lean repositories with interactive configuration</li>
+<li><strong>📦 Repository Management</strong>: Install and manage Lean repositories</li>
 <li><strong>🌍 Cross-platform Support</strong>: Works on Linux, macOS, and Windows</li>
-<li><strong>📦 Easy Installation</strong>: Quick setup via <code>pip install -e /path/to/LeanUp</code></li>
-<li><strong>🔄 Command Proxy</strong>: Transparent proxy for all elan commands with streaming output support</li>
-<li><strong>📊 Status Monitoring</strong>: Real-time view of Lean environment status and installed toolchains</li>
-<li><strong>⚙️ Configuration Management</strong>: Flexible configuration system with interactive setup</li>
+<li><strong>📦 Easy Installation</strong>: Quick setup via <code>pip install leanup</code></li>
 </ul>
 <h2 id="quick-start">Quick Start</h2>
 <p>Check the <a href="getting-started/quickstart/">Quick Start</a> guide to begin using LeanUp.</p>
@@ -724,14 +703,14 @@
 <p>LeanUp provides a comprehensive CLI with the following commands:</p>
 <h3 id="main-commands">Main Commands</h3>
 <ul>
-<li><code>leanup init</code> - Initialize LeanUp configuration</li>
+<li><code>leanup init</code> - Initialize elan installation</li>
 <li><code>leanup install [version]</code> - Install Lean toolchain version via elan</li>
-<li><code>leanup status</code> - Show current status and configuration</li>
+<li><code>leanup status</code> - Show current status and installed toolchains</li>
 <li><code>leanup elan &lt;args&gt;</code> - Proxy elan commands</li>
 </ul>
 <h3 id="repository-management">Repository Management</h3>
 <ul>
-<li><code>leanup repo install &lt;repository&gt;</code> - Install Lean repositories</li>
+<li><code>leanup repo install &lt;repository&gt;</code> - Install Lean repositories (format: owner/repo)</li>
 <li><code>leanup repo list</code> - List installed repositories</li>
 </ul>
 <h2 id="modules">Modules</h2>
@@ -740,7 +719,6 @@
 <ul>
 <li><strong>Main CLI</strong>: Core commands for elan management and status monitoring</li>
 <li><strong>Repository CLI</strong>: Commands for managing Lean repositories</li>
-<li><strong>Configuration</strong>: Centralized configuration management</li>
 </ul>
 <h3 id="utils-module">Utils Module</h3>
 <p>The <code>leanup.utils</code> module provides utility functions for the package:</p>
@@ -749,30 +727,12 @@
 <li><code>setup_logger</code>: Configure a logger with customizable output formats and color support</li>
 </ul>
 <h3 id="repo-module">Repo Module</h3>
-<p>The <code>leanup.repo</code> module provides functionality for repository management:</p>
+<p>The <code>leanup.repo</code> module provides repository management functionality:</p>
 <ul>
-<li><code>RepoManager</code>: A class for managing directory operations and git functionality</li>
-<li>File operations (read, write, edit)</li>
-<li>Command execution</li>
-<li>
-<p>Git operations (clone, status, add, commit, pull, push)</p>
-</li>
-<li>
-<p><code>ElanManager</code>: A class for managing the Lean toolchain manager elan</p>
-</li>
-<li>Automatic elan installation and version management</li>
-<li>Cross-platform installer download and execution</li>
-<li>Command proxy with streaming output support</li>
-<li>Toolchain management and status monitoring</li>
+<li><code>RepoManager</code>: Base class for directory and git operations</li>
+<li><code>LeanRepo</code>: Specialized class for Lean project management with lake support</li>
+<li><code>ElanManager</code>: Manage elan installation and toolchain operations</li>
 </ul>
-<h2 id="architecture">Architecture</h2>
-<p>LeanUp is built with a modular architecture:</p>
-<ul>
-<li><strong>CLI layer</strong>: Command-line interface for user interactions</li>
-<li><strong>Utils layer</strong>: Core utility functions for command execution and logging</li>
-<li><strong>Repo layer</strong>: High-level abstractions for repository and toolchain management</li>
-</ul>
-<p>The package uses the <code>execute_command</code> utility function from the utils module for all command execution, ensuring consistent behavior across different platforms and components.</p>
 
 
 

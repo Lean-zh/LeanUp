@@ -692,13 +692,10 @@
 <p>一个用于管理 Lean 数学证明语言环境的 Python 工具。</p>
 <h2 id="_1">功能特性</h2>
 <ul>
-<li><strong>🔧 elan 管理</strong>: 一键安装和管理 Lean 工具链管理器 elan</li>
-<li><strong>📦 仓库管理</strong>: 通过交互式配置安装和管理 Lean 仓库</li>
+<li><strong>🔧 elan 管理</strong>: 安装和管理 Lean 工具链管理器 elan</li>
+<li><strong>📦 仓库管理</strong>: 安装和管理 Lean 仓库</li>
 <li><strong>🌍 跨平台支持</strong>: 支持 Linux、macOS 和 Windows</li>
-<li><strong>📦 简单易用</strong>: 通过 <code>pip install -e /path/to/LeanUp</code> 快速安装</li>
-<li><strong>🔄 命令代理</strong>: 透明代理所有 elan 命令，支持流式输出</li>
-<li><strong>📊 状态监控</strong>: 实时查看 Lean 环境状态和已安装工具链</li>
-<li><strong>⚙️ 配置管理</strong>: 灵活的配置系统，支持交互式设置</li>
+<li><strong>📦 简单易用</strong>: 通过 <code>pip install leanup</code> 快速安装</li>
 </ul>
 <h2 id="_2">快速开始</h2>
 <p>查看<a href="getting-started/quickstart/">快速开始</a>指南，开始使用 LeanUp。</p>
@@ -706,14 +703,14 @@
 <p>LeanUp 提供了完整的 CLI，包含以下命令：</p>
 <h3 id="_4">主要命令</h3>
 <ul>
-<li><code>leanup init</code> - 初始化 LeanUp 配置</li>
+<li><code>leanup init</code> - 初始化 elan 安装</li>
 <li><code>leanup install [version]</code> - 安装 Lean 工具链版本（通过 elan）</li>
-<li><code>leanup status</code> - 显示当前状态和配置</li>
+<li><code>leanup status</code> - 显示当前状态和已安装工具链</li>
 <li><code>leanup elan &lt;args&gt;</code> - 代理 elan 命令</li>
 </ul>
 <h3 id="_5">仓库管理</h3>
 <ul>
-<li><code>leanup repo install &lt;repository&gt;</code> - 安装 Lean 仓库</li>
+<li><code>leanup repo install &lt;repository&gt;</code> - 安装 Lean 仓库（格式：owner/repo）</li>
 <li><code>leanup repo list</code> - 列出已安装的仓库</li>
 </ul>
 <h2 id="_6">模块</h2>
@@ -722,7 +719,6 @@
 <ul>
 <li><strong>主 CLI</strong>: elan 管理和状态监控的核心命令</li>
 <li><strong>仓库 CLI</strong>: 管理 Lean 仓库的命令</li>
-<li><strong>配置</strong>: 集中化配置管理</li>
 </ul>
 <h3 id="utils">Utils 模块</h3>
 <p><code>leanup.utils</code> 模块提供了包的实用函数：</p>
@@ -733,12 +729,9 @@
 <h3 id="repo">Repo 模块</h3>
 <p><code>leanup.repo</code> 模块提供了仓库管理功能：</p>
 <ul>
-<li><code>RepoManager</code>: 用于管理目录操作和 git 功能的类</li>
-<li>文件操作（读取、写入、编辑）</li>
-<li>命令执行</li>
-<li>Git 操作（克隆、状态、添加、提交、拉取、推送）</li>
-<li><code>LeanRepo</code>: 专门用于 Lean 项目的仓库管理器，扩展了 RepoManager 并支持 lake 功能</li>
-<li><code>ElanManager</code>: 管理 Lean 工具链管理器 elan 的类</li>
+<li><code>RepoManager</code>: 目录和 git 操作的基础类</li>
+<li><code>LeanRepo</code>: 专门用于 Lean 项目管理的类，支持 lake 操作</li>
+<li><code>ElanManager</code>: 管理 elan 安装和工具链操作</li>
 </ul>
 
 

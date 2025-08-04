@@ -480,9 +480,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#initialize-configuration" class="md-nav__link">
+  <a href="#initialize-elan" class="md-nav__link">
     <span class="md-ellipsis">
-      Initialize Configuration
+      Initialize elan
     </span>
   </a>
   
@@ -530,18 +530,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#using-leanrepo" class="md-nav__link">
+  <a href="#using-leanrepo-for-lean-projects" class="md-nav__link">
     <span class="md-ellipsis">
-      Using LeanRepo
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
+      Using LeanRepo for Lean Projects
     </span>
   </a>
   
@@ -609,9 +600,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#initialize-configuration" class="md-nav__link">
+  <a href="#initialize-elan" class="md-nav__link">
     <span class="md-ellipsis">
-      Initialize Configuration
+      Initialize elan
     </span>
   </a>
   
@@ -659,18 +650,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#using-leanrepo" class="md-nav__link">
+  <a href="#using-leanrepo-for-lean-projects" class="md-nav__link">
     <span class="md-ellipsis">
-      Using LeanRepo
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
+      Using LeanRepo for Lean Projects
     </span>
   </a>
   
@@ -719,18 +701,15 @@
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div>
 <h2 id="basic-usage">Basic Usage</h2>
-<h3 id="initialize-configuration">Initialize Configuration</h3>
+<h3 id="initialize-elan">Initialize elan</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># View help</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>leanup<span class="w"> </span>--help
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Install elan and initialize configuration</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Install elan</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>leanup<span class="w"> </span>init
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Install latest stable version</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>leanup<span class="w"> </span>install
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># View current status</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>leanup<span class="w"> </span>status
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># View current status</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>leanup<span class="w"> </span>status
 </code></pre></div>
 <h3 id="install-lean-toolchain">Install Lean Toolchain</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Install latest stable Lean toolchain</span>
@@ -750,26 +729,32 @@
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>leanup<span class="w"> </span>elan<span class="w"> </span>default<span class="w"> </span>stable
 </code></pre></div>
 <h3 id="repository-management">Repository Management</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Install a repository</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Install a repository (format: owner/repo)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Install with interactive configuration</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--interactive
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Install with specific options</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>--branch<span class="w"> </span>main<span class="w"> </span>--force
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Install from specific source</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--source<span class="w"> </span>github
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Install to specific directory</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>--dest-dir<span class="w"> </span>./my-mathlib
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Install from URL</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>--url<span class="w"> </span>https://github.com/leanprover-community/mathlib4.git
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Install from custom URL</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>owner/repo<span class="w"> </span>--url<span class="w"> </span>https://github.com/owner/repo.git
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
 <a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># List installed repositories</span>
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="c1"># List repositories with filter</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--name<span class="w"> </span>mathlib
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1"># Interactive installation</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>-i
 </code></pre></div>
 <h2 id="using-the-repomanager">Using the RepoManager</h2>
 <p>The <code>RepoManager</code> class provides functionality for managing directories and git repositories:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo</span><span class="w"> </span><span class="kn">import</span> <span class="n">RepoManager</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Initialize a directory manager</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Create a repo manager</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">repo</span> <span class="o">=</span> <span class="n">RepoManager</span><span class="p">(</span><span class="s2">&quot;/path/to/your/directory&quot;</span><span class="p">)</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># Check if it&#39;s a git repository</span>
@@ -777,47 +762,32 @@
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This is a git repository&quot;</span><span class="p">)</span>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">status</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">git_status</span><span class="p">()</span>
 <a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current branch: </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This is not a git repository&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="c1"># Clone a repository</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="n">repo</span><span class="o">.</span><span class="n">clone_from</span><span class="p">(</span><span class="s2">&quot;https://github.com/user/repo.git&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># File operations</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="n">repo</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="n">content</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="n">repo</span><span class="o">.</span><span class="n">edit_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="s2">&quot;universe&quot;</span><span class="p">)</span>
 <a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="c1"># Read a file</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="n">content</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;README.md&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="c1"># Write a file</span>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="n">repo</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello World&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="c1"># Execute a command</span>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="n">result</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">execute_command</span><span class="p">([</span><span class="s2">&quot;ls&quot;</span><span class="p">,</span> <span class="s2">&quot;-la&quot;</span><span class="p">])</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="c1"># List files and directories</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="n">files</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">list_files</span><span class="p">(</span><span class="s2">&quot;*.lean&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="n">dirs</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">list_dirs</span><span class="p">()</span>
 </code></pre></div>
-<h2 id="using-leanrepo">Using LeanRepo</h2>
-<p>The <code>LeanRepo</code> class is specialized for Lean project management:</p>
+<h2 id="using-leanrepo-for-lean-projects">Using LeanRepo for Lean Projects</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeanRepo</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Initialize Lean project manager</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Create a Lean repo manager</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">lean_repo</span> <span class="o">=</span> <span class="n">LeanRepo</span><span class="p">(</span><span class="s2">&quot;/path/to/lean/project&quot;</span><span class="p">)</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># Get Lean toolchain version</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">toolchain</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">get_lean_toolchain</span><span class="p">()</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lean toolchain: </span><span class="si">{</span><span class="n">toolchain</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Execute lake commands</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_update</span><span class="p">()</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_build</span><span class="p">()</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="c1"># Execute custom lake commands</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">result</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">lake</span><span class="p">([</span><span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;MyPackage&quot;</span><span class="p">])</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># Get project information</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">info</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">get_project_info</span><span class="p">()</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lean version: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;lean_version&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has lakefile: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lakefile_toml&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># Lake operations (execute commands directly)</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">returncode</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">lake</span><span class="p">([</span><span class="s2">&quot;build&quot;</span><span class="p">])</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">returncode</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_update</span><span class="p">()</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">returncode</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_build</span><span class="p">()</span>
 </code></pre></div>
-<h2 id="configuration">Configuration</h2>
-<p>LeanUp uses a configuration file at <code>~/.leanup/config.toml</code>. The configuration includes:</p>
-<ul>
-<li>Repository settings (default source, cache directory)</li>
-<li>elan settings (auto-installation)</li>
-<li>Interactive installation preferences</li>
-</ul>
-<p>You can modify the configuration manually or use the interactive installation mode to set preferences.</p>
 
 
 
