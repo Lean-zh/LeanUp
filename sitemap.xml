@@ -8,13 +8,6 @@
         <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/"/>
     </url>
     <url>
-        <loc>https://www.leanprover.cn/LeanUp/api-reference/</loc>
-        <lastmod>2025-08-04</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/api-reference/"/>
-        <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/api-reference/"/>
-    </url>
-    <url>
         <loc>https://www.leanprover.cn/LeanUp/getting-started/quickstart/</loc>
         <lastmod>2025-08-04</lastmod>
         <changefreq>daily</changefreq>
@@ -27,13 +20,6 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/"/>
-    </url>
-    <url>
-        <loc>https://www.leanprover.cn/LeanUp/zh/api-reference/</loc>
-        <lastmod>2025-08-04</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/api-reference/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/api-reference/"/>
     </url>
     <url>
         <loc>https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart/</loc>
