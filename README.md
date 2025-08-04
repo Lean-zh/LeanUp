@@ -24,7 +24,7 @@
 
 - **📦 仓库管理**: 安装和管理 Lean 仓库，支持交互式配置
 - **🌍 跨平台支持**: 支持 Linux、macOS 和 Windows
-- **📦 简单易用**: 通过 `pip install -e LeanUp` 快速安装
+- **📦 简单易用**: 通过 `pip install leanup` 快速安装
 - **🔄 命令代理**: 透明代理所有 elan 命令，无缝体验
 
 ## 🚀 快速开始
@@ -128,16 +128,6 @@ leanup repo list
 - 是否在克隆后运行 `lake build`
 - 要编译的特定构建包
 
-### 项目管理
-
-```bash
-# 为项目设置特定的工具链
-cd your-lean-project
-leanup elan override set stable
-
-# 移除项目的工具链覆盖
-leanup elan override unset
-```
 
 ## 🛠️ 开发
 
@@ -149,7 +139,7 @@ git clone https://github.com/Lean-zh/LeanUp.git
 cd LeanUp
 
 # 安装开发依赖
-pip install -r requirements_dev.txt
+pip install -e ".[dev]"
 
 # 安装项目（可编辑模式）
 pip install -e .

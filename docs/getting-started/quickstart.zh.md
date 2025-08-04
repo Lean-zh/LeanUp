@@ -3,8 +3,8 @@
 ## 安装
 
 ```bash
-# 从源码安装
-pip install -e /path/to/LeanUp
+# 从 PyPI 安装
+pip install leanup
 
 # 或者克隆仓库后安装
 git clone https://github.com/Lean-zh/LeanUp.git

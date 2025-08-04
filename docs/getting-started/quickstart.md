@@ -3,8 +3,8 @@
 ## Installation
 
 ```bash
-# Install from source
-pip install -e /path/to/LeanUp
+# Install from PyPI
+pip install leanup
 
 # Or clone the repository and install
 git clone https://github.com/Lean-zh/LeanUp.git

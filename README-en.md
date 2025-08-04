@@ -22,21 +22,18 @@
 
 ## 🎯 Features
 
-- **🔧 elan Management**: One-click installation and management of Lean toolchain manager elan
 - **📦 Repository Management**: Install and manage Lean repositories with interactive configuration
 - **🌍 Cross-platform Support**: Works on Linux, macOS, and Windows
-- **📦 Easy Installation**: Quick setup via `pip install -e /path/to/LeanUp`
+- **📦 Easy Installation**: Quick setup via `pip install leanup`
 - **🔄 Command Proxy**: Transparent proxy for all elan commands with seamless experience
-- **📊 Status Monitoring**: Real-time view of Lean environment status and installed toolchains
-- **⚙️ Configuration Management**: Flexible configuration system with interactive setup
 
 ## 🚀 Quick Start
 
 ### Installation
 
 ```bash
-# Install from source
-pip install -e /path/to/LeanUp
+# Install from PyPI
+pip install leanup
 
 # Or clone the repository and install
 git clone https://github.com/Lean-zh/LeanUp.git
@@ -131,16 +128,6 @@ When using `--interactive` flag with `leanup repo install`, you can configure:
 - Whether to run `lake build` after cloning
 - Specific build packages to compile
 
-### Project Management
-
-```bash
-# Set specific toolchain for a project
-cd your-lean-project
-leanup elan override set stable
-
-# Remove project toolchain override
-leanup elan override unset
-```
 
 ## 🛠️ Development
 
@@ -152,7 +139,7 @@ git clone https://github.com/Lean-zh/LeanUp.git
 cd LeanUp
 
 # Install development dependencies
-pip install -r requirements_dev.txt
+pip install -e ".[dev]"
 
 # Install project (editable mode)
 pip install -e .
