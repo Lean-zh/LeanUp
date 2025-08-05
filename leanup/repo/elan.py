@@ -143,6 +143,16 @@ class ElanManager:
             logger.error(f"Error occurred during elan installation: {e}")
             return False
     
+    def install_lean(self, version:str=None)-> bool:
+        installed = self.get_installed_toolchains()
+        if version in installed:
+            logger.info(f"Lean toolchain {version} is already installed")
+            return True
+        version = version or 'stable'
+        cmd = ['toolchain', 'install', version]
+        result = self.proxy_elan_command(cmd)
+        return result == 0
+
     def proxy_elan_command(self, args: List[str]) -> int:
         """Proxy execute elan command with streaming output"""
         elan_path = self.get_elan_executable()

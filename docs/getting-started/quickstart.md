@@ -35,9 +35,6 @@ leanup install
 
 # Install specific Lean toolchain version
 leanup install v4.14.0
-
-# Force reinstall
-leanup install --force
 ```
 
 ### Manage Toolchains

@@ -35,9 +35,6 @@ leanup install
 
 # 安装特定版本的 Lean 工具链
 leanup install v4.14.0
-
-# 强制重新安装
-leanup install --force
 ```
 
 ### 管理工具链

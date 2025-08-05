@@ -14,33 +14,67 @@ logger = setup_logger("repo_manager")
 
 
 # Installation Config
-@dataclass
 class InstallConfig:
-    suffix: Optional[str]=None
-    source: Optional[str]='https://github.com'
-    url: Optional[str]=None
-    branch: Optional[str]=None
-    dest_name: Optional[str]=None
-    dest_dir: Optional[Path]=None
-    build_packages: Optional[List[str]]=None
-    lake_update: bool = False
-    lake_build:bool = False
-    override: bool = False
+    def __init__(self, 
+                 suffix: Optional[str]=None, 
+                 source: Optional[str]='https://github.com', 
+                 url: Optional[str]=None, 
+                 branch: Optional[str]=None, 
+                 dest_name: Optional[str]=None, 
+                 dest_dir: Optional[Path]=None, 
+                 build_packages: Optional[List[str]]=None, 
+                 lake_update: bool = False, 
+                 lake_build:bool = False, 
+                 override: bool = False):
+        self._suffix = suffix
+        self._url = url
+        self._dest_name = dest_name
+        self._dest_dir = dest_dir
+        self._build_packages = build_packages
+        self.branch = branch
+        self.source = source
+        self.lake_update = lake_update
+        self.lake_build = lake_build
+        self.override = override
 
-    def __post_init__(self):
-        if self.url is None:
-            self.url = f"{self.source}/{self.suffix}"
-        if self.suffix is None:
-            self.suffix = self.url.split('/')[-1]
-        if self.dest_dir is None:
-            self.dest_dir = LEANUP_CACHE_DIR / "repos"
-        if self.dest_name is None:
-            self.dest_name = self.suffix.replace('/', '_').lower()
+    @property
+    def url(self):
+        if self._url is None:
+            if self._suffix is None:
+                raise ValueError("suffix or url is required")
+            return f"{self.source}/{self._suffix}"
+        return self._url
+    
+    @property
+    def suffix(self):
+        if self._suffix is None:
+            suffix = self._url.split('/')[-1]
+            if suffix.endswith('.git'):
+                suffix = suffix[:-4]
+            return suffix
+        return self._suffix
+    
+    @property
+    def dest_name(self):
+        if self._dest_name is None:
+            dest_name = self.suffix.replace('/', '_').lower()
             if self.branch:
-                self.dest_name += f"_{self.branch}"
-        if self.build_packages is None:
-            self.build_packages = []
+                dest_name += f"_{self.branch}"
+            return dest_name
+        return self._dest_name
 
+    @property
+    def dest_dir(self):
+        if self._dest_dir is None:
+            return LEANUP_CACHE_DIR / "repos"
+        return self._dest_dir
+
+    @property
+    def build_packages(self):
+        if self._build_packages is None:
+            return []
+        return self._build_packages
+    
     @property
     def is_valid(self):
         return self.url is not None
@@ -54,20 +88,29 @@ class InstallConfig:
         return getattr(self, key, default)
     
     def update(self, **kwargs):
-        """Update config
-
-        Args:
-            kwargs: Additional keyword arguments for lake_init
-        """
+        """Update config"""
         config = self.copy()
         for k, v in kwargs.items():
             if v is not None:
+                if k in ("suffix", "url", "dest_name", "dest_dir", "build_packages"):
+                    k = f"_{k}"
                 setattr(config, k, v)
         return config
     
     def copy(self) -> 'InstallConfig':
         """Copy config"""
-        return InstallConfig(**self.__dict__)
+        return InstallConfig(
+            suffix=self._suffix,
+            source=self.source,
+            url=self._url,
+            branch=self.branch,
+            dest_name=self._dest_name,
+            dest_dir=self._dest_dir,
+            build_packages=self._build_packages,
+            lake_update=self.lake_update,
+            lake_build=self.lake_build,
+            override=self.override,
+        )
 
     def install(self):
         repo = LeanRepo(self.dest_path)

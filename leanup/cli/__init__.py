@@ -36,8 +36,7 @@ def init():
 
 @cli.command()
 @click.argument('version', required=False)
-@click.option('--force', '-f', is_flag=True, help='Force reinstall')
-def install(version: Optional[str], force: bool):
+def install(version: Optional[str]):
     """Install Lean toolchain version via elan"""
     elan_manager = ElanManager()
     
@@ -48,26 +47,11 @@ def install(version: Optional[str], force: bool):
             sys.exit(1)
         click.echo("✓ elan installed successfully")
     
-    if not version:
-        # Install latest stable version
-        click.echo("Installing latest Lean toolchain...")
-        cmd = ['toolchain', 'install', 'stable']
-    else:
-        # Install specific version
-        click.echo(f"Installing Lean toolchain {version}...")
-        cmd = ['toolchain', 'install', version]
-    if force:
-        cmd.append('--force')
-    try:
-        result = elan_manager.proxy_elan_command(cmd)
-        if result == 0:
-            click.echo(f"✓ Lean toolchain {version} installed")
-        else:
-            click.echo(f"✗ Failed to install Lean toolchain {version}", err=True)
-            sys.exit(1)
-    except Exception as e:
-        click.echo(f"✗ Failed to install Lean toolchain {version}: {e}", err=True)
+    if not elan_manager.install_lean(version):
+        click.echo(f"✗ Failed to install Lean toolchain {version}", err=True)
         sys.exit(1)
+    
+    click.echo(f"✓ Lean toolchain {version} installed")
 
 
 @cli.command()

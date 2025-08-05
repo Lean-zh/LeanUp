@@ -29,7 +29,7 @@ class TestInstallConfig:
         )
         
         assert config.url == 'https://gitlab.com/user/project.git'
-        assert config.suffix == 'project.git'
+        assert config.suffix == 'project'
         assert config.is_valid is True
     
     def test_install_config_dest_name_generation(self):
