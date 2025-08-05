@@ -432,6 +432,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Repository Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repository-install-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Repository Install Options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -607,6 +622,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Repository Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repository-install-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Repository Install Options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -693,7 +723,7 @@
 <h2 id="features">Features</h2>
 <ul>
 <li><strong>🔧 elan Management</strong>: Install and manage the Lean toolchain manager elan with a single command</li>
-<li><strong>📦 Repository Management</strong>: Install and manage Lean repositories</li>
+<li><strong>📦 Repository Management</strong>: Install and manage Lean repositories with advanced configuration options</li>
 <li><strong>🌍 Cross-platform Support</strong>: Works on Linux, macOS, and Windows</li>
 <li><strong>📦 Easy Installation</strong>: Quick setup via <code>pip install leanup</code></li>
 </ul>
@@ -710,15 +740,27 @@
 </ul>
 <h3 id="repository-management">Repository Management</h3>
 <ul>
-<li><code>leanup repo install &lt;repository&gt;</code> - Install Lean repositories (format: owner/repo)</li>
-<li><code>leanup repo list</code> - List installed repositories</li>
+<li><code>leanup repo install &lt;repository&gt;</code> - Install Lean repositories with flexible configuration</li>
+<li><code>leanup repo list</code> - List installed repositories with filtering options</li>
+</ul>
+<h4 id="repository-install-options">Repository Install Options</h4>
+<ul>
+<li><code>--source</code> - Repository source URL (default: https://github.com)</li>
+<li><code>--branch</code> - Branch or tag to clone</li>
+<li><code>--force</code> - Replace existing directory</li>
+<li><code>--dest-dir</code> - Destination directory</li>
+<li><code>--dest-name</code> - Custom destination name</li>
+<li><code>--interactive</code> - Interactive configuration mode</li>
+<li><code>--lake-update</code> - Run lake update after cloning (default: true)</li>
+<li><code>--lake-build</code> - Run lake build after cloning (default: true)</li>
+<li><code>--build-packages</code> - Specific packages to build</li>
 </ul>
 <h2 id="modules">Modules</h2>
 <h3 id="cli-module">CLI Module</h3>
 <p>The <code>leanup.cli</code> module provides the command-line interface:</p>
 <ul>
 <li><strong>Main CLI</strong>: Core commands for elan management and status monitoring</li>
-<li><strong>Repository CLI</strong>: Commands for managing Lean repositories</li>
+<li><strong>Repository CLI</strong>: Commands for managing Lean repositories with advanced options</li>
 </ul>
 <h3 id="utils-module">Utils Module</h3>
 <p>The <code>leanup.utils</code> module provides utility functions for the package:</p>
@@ -729,6 +771,7 @@
 <h3 id="repo-module">Repo Module</h3>
 <p>The <code>leanup.repo</code> module provides repository management functionality:</p>
 <ul>
+<li><code>InstallConfig</code>: Configuration class for repository installation with validation</li>
 <li><code>RepoManager</code>: Base class for directory and git operations</li>
 <li><code>LeanRepo</code>: Specialized class for Lean project management with lake support</li>
 <li><code>ElanManager</code>: Manage elan installation and toolchain operations</li>

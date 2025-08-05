@@ -432,6 +432,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="仓库管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      仓库安装选项
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -440,7 +455,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       模块
     </span>
@@ -607,6 +622,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="仓库管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      仓库安装选项
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -615,7 +645,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       模块
     </span>
@@ -693,7 +723,7 @@
 <h2 id="_1">功能特性</h2>
 <ul>
 <li><strong>🔧 elan 管理</strong>: 安装和管理 Lean 工具链管理器 elan</li>
-<li><strong>📦 仓库管理</strong>: 安装和管理 Lean 仓库</li>
+<li><strong>📦 仓库管理</strong>: 安装和管理 Lean 仓库，支持高级配置选项</li>
 <li><strong>🌍 跨平台支持</strong>: 支持 Linux、macOS 和 Windows</li>
 <li><strong>📦 简单易用</strong>: 通过 <code>pip install leanup</code> 快速安装</li>
 </ul>
@@ -710,15 +740,27 @@
 </ul>
 <h3 id="_5">仓库管理</h3>
 <ul>
-<li><code>leanup repo install &lt;repository&gt;</code> - 安装 Lean 仓库（格式：owner/repo）</li>
-<li><code>leanup repo list</code> - 列出已安装的仓库</li>
+<li><code>leanup repo install &lt;repository&gt;</code> - 安装 Lean 仓库，支持灵活配置</li>
+<li><code>leanup repo list</code> - 列出已安装的仓库，支持过滤选项</li>
 </ul>
-<h2 id="_6">模块</h2>
+<h4 id="_6">仓库安装选项</h4>
+<ul>
+<li><code>--source</code> - 仓库源 URL（默认：https://github.com）</li>
+<li><code>--branch</code> - 要克隆的分支或标签</li>
+<li><code>--force</code> - 替换现有目录</li>
+<li><code>--dest-dir</code> - 目标目录</li>
+<li><code>--dest-name</code> - 自定义目标名称</li>
+<li><code>--interactive</code> - 交互式配置模式</li>
+<li><code>--lake-update</code> - 克隆后运行 lake update（默认：true）</li>
+<li><code>--lake-build</code> - 克隆后运行 lake build（默认：true）</li>
+<li><code>--build-packages</code> - 要构建的特定包</li>
+</ul>
+<h2 id="_7">模块</h2>
 <h3 id="cli">CLI 模块</h3>
 <p><code>leanup.cli</code> 模块提供了命令行界面：</p>
 <ul>
 <li><strong>主 CLI</strong>: elan 管理和状态监控的核心命令</li>
-<li><strong>仓库 CLI</strong>: 管理 Lean 仓库的命令</li>
+<li><strong>仓库 CLI</strong>: 管理 Lean 仓库的命令，支持高级选项</li>
 </ul>
 <h3 id="utils">Utils 模块</h3>
 <p><code>leanup.utils</code> 模块提供了包的实用函数：</p>
@@ -729,6 +771,7 @@
 <h3 id="repo">Repo 模块</h3>
 <p><code>leanup.repo</code> 模块提供了仓库管理功能：</p>
 <ul>
+<li><code>InstallConfig</code>: 仓库安装的配置类，支持验证</li>
 <li><code>RepoManager</code>: 目录和 git 操作的基础类</li>
 <li><code>LeanRepo</code>: 专门用于 Lean 项目管理的类，支持 lake 操作</li>
 <li><code>ElanManager</code>: 管理 elan 安装和工具链操作</li>
