@@ -744,40 +744,32 @@
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>leanup<span class="w"> </span>elan<span class="w"> </span>default<span class="w"> </span>stable
 </code></pre></div>
 <h3 id="_5">仓库管理</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 安装仓库（格式：owner/repo 或仅仓库名）</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 安装 Mathlib</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># 使用特定选项安装</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--branch<span class="w"> </span>main<span class="w"> </span>--force
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># 安装到指定目录</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--dest-dir<span class="w"> </span>./my-repos
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># 自定义目标名称</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--dest-name<span class="w"> </span>my-mathlib
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># 从自定义源安装</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--source<span class="w"> </span>https://gitlab.com
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># 控制构建过程</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--lake-update<span class="w"> </span>--lake-build
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--no-lake-update<span class="w"> </span>--no-lake-build
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="c1"># 构建特定包</span>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>mathlib4<span class="w"> </span>--build-packages<span class="w"> </span><span class="s2">&quot;REPL,REPL.Main&quot;</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="c1"># 列出已安装的仓库</span>
-<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list
-<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>
-<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="c1"># 使用过滤器列出仓库</span>
-<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--name<span class="w"> </span>mathlib
-<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>
-<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="c1"># 在指定目录中列出仓库</span>
-<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--search-dir<span class="w"> </span>/path/to/repos
-<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>
-<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="c1"># 交互式安装</span>
-<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>--interactive
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 安装特定分支或标签</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>-b<span class="w"> </span>v4.14.0
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># 安装到自定义目录</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>Lean-zh/leanup<span class="w"> </span>-d<span class="w"> </span>/path/to/custom/dir
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># 控制构建选项</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>--lake-build
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># 交互式</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>-i
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="c1"># 指定要构建的包</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>Lean-zh/repl<span class="w"> </span>--build-packages<span class="w"> </span><span class="s2">&quot;REPL,REPL.Main&quot;</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1"># 列出已安装的仓库</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="c1"># 在指定目录中搜索仓库</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--search-dir<span class="w"> </span>/path/to/repos
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="c1"># 按名称过滤仓库</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>-n<span class="w"> </span>mathlib
 </code></pre></div>
 <h2 id="installconfig">使用 InstallConfig</h2>
 <p><code>InstallConfig</code> 类提供了编程方式配置仓库安装：</p>
