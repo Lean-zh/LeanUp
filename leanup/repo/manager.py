@@ -30,7 +30,12 @@ class InstallConfig:
         self._url = url
         self._dest_name = dest_name
         self._dest_dir = dest_dir
-        self._build_packages = build_packages
+        if isinstance(build_packages, str):
+            self._build_packages = [pkg.strip() for pkg in build_packages.strip('[]').split(',')]
+        elif isinstance(build_packages, list):
+            self._build_packages = build_packages
+        else:
+            self._build_packages = []
         self.branch = branch
         self.source = source
         self.lake_update = lake_update
@@ -74,6 +79,15 @@ class InstallConfig:
         if self._build_packages is None:
             return []
         return self._build_packages
+    
+    @build_packages.setter
+    def build_packages(self, value: Union[str, List[str]]):
+        if isinstance(value, str):
+            self._build_packages = [pkg.strip() for pkg in value.strip('[]').split(',')]
+        elif isinstance(value, list):
+            self._build_packages = value
+        else:
+            self._build_packages = []
     
     @property
     def is_valid(self):
@@ -641,7 +655,10 @@ class LeanRepo(RepoManager):
                 logger.info(f"Successfully built repository: {config.url}")
         if config.build_packages:
             for package in config.build_packages:
-                logger.info(f"Building package: {package}")
+                if package:
+                    logger.info(f"Building package: {package}")
+                else:
+                    logger.info("Running lake build")
                 if not repo.lake_build(package):
                     logger.warning(f"Failed to build package: {package}")
         return True

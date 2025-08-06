@@ -46,9 +46,7 @@ def install(suffix: str, source: str, branch: Optional[str], force: bool,
         config.dest_name = click.prompt("Destination name", type=str, default=config.dest_name)
         config.lake_update = click.confirm("Run lake update after cloning?", default=lake_update)
         config.lake_build = click.confirm("Run lake build after cloning?", default=lake_build)
-        build_packages = click.prompt("Packages to build after cloning(e.g. REPL,REPL.Main)", type=str, default=build_packages or "" )
-        if build_packages:
-            config.build_packages = build_packages.split(',')
+        config.build_packages = click.prompt("Packages to build after cloning(e.g. REPL,REPL.Main)", type=str, default=build_packages or "" )
         if config.dest_path.exists():
             config.override = click.confirm(f"Repository {config.dest_name} already exists in {config.dest_dir}. Override?", default=False)
             if not config.override:

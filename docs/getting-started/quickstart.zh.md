@@ -50,40 +50,32 @@ leanup elan default stable
 ### 仓库管理
 
 ```bash
-# 安装仓库（格式：owner/repo 或仅仓库名）
+# 安装 Mathlib
 leanup repo install leanprover-community/mathlib4
-leanup repo install mathlib4
 
-# 使用特定选项安装
-leanup repo install mathlib4 --branch main --force
+# 安装特定分支或标签
+leanup repo install leanprover-community/mathlib4 -b v4.14.0
 
-# 安装到指定目录
-leanup repo install mathlib4 --dest-dir ./my-repos
+# 安装到自定义目录
+leanup repo install Lean-zh/leanup -d /path/to/custom/dir
 
-# 自定义目标名称
-leanup repo install mathlib4 --dest-name my-mathlib
+# 控制构建选项
+leanup repo install leanprover-community/mathlib4 --lake-build
 
-# 从自定义源安装
-leanup repo install mathlib4 --source https://gitlab.com
+# 交互式
+leanup repo install leanprover-community/mathlib4 -i
 
-# 控制构建过程
-leanup repo install mathlib4 --lake-update --lake-build
-leanup repo install mathlib4 --no-lake-update --no-lake-build
-
-# 构建特定包
-leanup repo install mathlib4 --build-packages "REPL,REPL.Main"
+# 指定要构建的包
+leanup repo install Lean-zh/repl --build-packages "REPL,REPL.Main"
 
 # 列出已安装的仓库
 leanup repo list
 
-# 使用过滤器列出仓库
-leanup repo list --name mathlib
-
-# 在指定目录中列出仓库
+# 在指定目录中搜索仓库
 leanup repo list --search-dir /path/to/repos
 
-# 交互式安装
-leanup repo install --interactive
+# 按名称过滤仓库
+leanup repo list -n mathlib
 ```
 
 ## 使用 InstallConfig

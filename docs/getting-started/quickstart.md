@@ -50,40 +50,32 @@ leanup elan default stable
 ### Repository Management
 
 ```bash
-# Install a repository (format: owner/repo or just repo name)
+# Install Mathlib
 leanup repo install leanprover-community/mathlib4
-leanup repo install mathlib4
 
-# Install with specific options
-leanup repo install mathlib4 --branch main --force
+# Install specific branch or tag
+leanup repo install leanprover-community/mathlib4 -b v4.14.0
 
-# Install to specific directory
-leanup repo install mathlib4 --dest-dir ./my-repos
+# Install to custom directory
+leanup repo install Lean-zh/leanup -d /path/to/custom/dir
 
-# Custom destination name
-leanup repo install mathlib4 --dest-name my-mathlib
+# Control build options
+leanup repo install leanprover-community/mathlib4 --lake-build
 
-# Install from custom source
-leanup repo install mathlib4 --source https://gitlab.com
+# Interactive mode
+leanup repo install leanprover-community/mathlib4 -i
 
-# Control build process
-leanup repo install mathlib4 --lake-update --lake-build
-leanup repo install mathlib4 --no-lake-update --no-lake-build
-
-# Build specific packages
-leanup repo install mathlib4 --build-packages "REPL,REPL.Main"
+# Specify packages to build
+leanup repo install Lean-zh/repl --build-packages "REPL,REPL.Main"
 
 # List installed repositories
 leanup repo list
 
-# List repositories with filter
-leanup repo list --name mathlib
-
-# List repositories in specific directory
+# Search repositories in specified directory
 leanup repo list --search-dir /path/to/repos
 
-# Interactive installation
-leanup repo install --interactive
+# Filter repositories by name
+leanup repo list -n mathlib
 ```
 
 ## Using InstallConfig
