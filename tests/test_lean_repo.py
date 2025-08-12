@@ -207,7 +207,8 @@ class TestLeanRepo:
         result = self.lean_repo.lake_init('test_project', 'std')
         
         assert result == ('output', '', 0)
-        mock_execute.assert_called_once_with(['lake', 'init', 'test_project', 'std'], cwd=str(self.lean_repo.cwd))
+        lake = shutil.which('lake')
+        mock_execute.assert_called_once_with([str(lake), 'init', 'test_project', 'std'], cwd=str(self.lean_repo.cwd))
     
     @patch('leanup.repo.manager.execute_command')
     def test_lake_env_lean(self, mock_execute):
@@ -217,7 +218,8 @@ class TestLeanRepo:
         result = self.lean_repo.lake_env_lean('test.lean', json=True, nproc=4)
         
         assert result == ('output', '', 0)
-        expected_cmd = ['lake', 'env', 'lean', '--json', '-j', '4', 'test.lean']
+        lake = shutil.which('lake')
+        expected_cmd = [str(lake), 'env', 'lean', '--json', '-j', '4', 'test.lean']
         mock_execute.assert_called_once_with(expected_cmd, cwd=str(self.lean_repo.cwd))
     
     def test_get_project_info(self):

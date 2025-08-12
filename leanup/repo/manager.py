@@ -5,6 +5,7 @@ from pathlib import Path
 from token import OP
 from typing import Optional, Union, List, Dict, Any, Tuple
 import git
+import os
 import toml
 from leanup.const import OS_TYPE, LEANUP_CACHE_DIR
 from leanup.utils.basic import execute_command
@@ -133,13 +134,16 @@ class InstallConfig:
 class RepoManager:
     """Class for managing directory operations and git functionality."""
     
-    def __init__(self, cwd: Union[str, Path]):
+    def __init__(self, cwd: Union[str, Path]=None):
         """Initialize with a working directory.
         
         Args:
             cwd: Working directory path
         """
-        self.cwd = Path(cwd).resolve()
+        if cwd is None:
+            cwd = Path.cwd().resolve()
+        else:
+            self.cwd = Path(cwd).resolve()
         self._git_repo = None
         self._check_git_repo()
     
@@ -148,7 +152,7 @@ class RepoManager:
         try:
             if (self.cwd / ".git").exists():
                 self._git_repo = git.Repo(self.cwd)
-                logger.debug(f"Git repository found at {self.cwd}")
+                # logger.debug(f"Git repository found at {self.cwd}")
             else:
                 logger.debug(f"{self.cwd} is not a git repository")
         except Exception as e:
@@ -462,8 +466,32 @@ class LeanRepo(RepoManager):
             cwd: Working directory path
         """
         super().__init__(cwd)
+        self.elan_home = Path(os.environ.get('ELAN_HOME', Path.home() / '.elan'))
+        self.elan_bin_dir = self.elan_home / 'bin'
+        self._lake_exe = None
         self.lean_version = self.get_lean_toolchain()
     
+    @property
+    def lake_exe(self):
+        if self._lake_exe is None:
+            self._lake_exe = self.get_lake_executable()
+        return self._lake_exe
+    
+    def get_lake_executable(self) -> Optional[Path]:
+        """Get lake executable file path"""
+        lake_exe = 'lake.exe' if OS_TYPE == 'Windows' else 'lake'
+        lake_path = self.elan_bin_dir / lake_exe
+        
+        if lake_path.exists() and lake_path.is_file():
+            return lake_path
+        
+        # Try to find in PATH
+        lake_in_path = shutil.which('lake')
+        if lake_in_path:
+            return Path(lake_in_path)
+        
+        return None
+
     def get_lean_toolchain(self) -> Optional[str]:
         """Read lean-toolchain file to get Lean version.
         
@@ -492,10 +520,21 @@ class LeanRepo(RepoManager):
         Returns:
             Tuple containing stdout, stderr, and return code
         """
-        command = ["lake"] + args
+        command = [str(self.lake_exe)] + args
         logger.debug("Executing lake command: " + ' '.join(command))
         return self.execute_command(command)
     
+    def lake_which(self, name: str) -> Tuple[str, str, int]:
+        """Check if a lake package is installed.
+        
+        Args:
+            name: Package name
+            
+        Returns:
+            Tuple containing stdout, stderr, and return code
+        """
+        return self.lake(["which", name])
+        
     def lake_init(self,
                   name: Optional[str] = None,
                   template: Optional[str] = None,

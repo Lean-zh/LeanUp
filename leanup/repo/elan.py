@@ -18,6 +18,13 @@ class ElanManager:
     def __init__(self):
         self.elan_home = Path(os.environ.get('ELAN_HOME', Path.home() / '.elan'))
         self.elan_bin_dir = self.elan_home / 'bin'
+        self._elan_exe = None
+
+    @property
+    def elan_exe(self):
+        if self._elan_exe is None:
+            self._elan_exe = self.get_elan_executable()
+        return self._elan_exe
         
     def get_elan_executable(self) -> Optional[Path]:
         """Get elan executable file path"""
@@ -36,16 +43,15 @@ class ElanManager:
     
     def is_elan_installed(self) -> bool:
         """Check if elan is installed"""
-        return self.get_elan_executable() is not None
+        return self.elan_exe is not None
     
     def get_elan_version(self) -> Optional[str]:
         """Get installed elan version"""
-        elan_path = self.get_elan_executable()
-        if not elan_path:
+        if not self.elan_exe:
             return None
             
         try:
-            output, error, code = execute_command([str(elan_path), '--version'])
+            output, error, code = execute_command([str(self.elan_exe), '--version'])
             if code == 0:
                 # elan 4.0.0 (bb75b50d2 2025-01-30)
                 elan_regex = re.compile(r'elan\s+(\d+\.\d+\.\d+)')
@@ -155,14 +161,12 @@ class ElanManager:
 
     def proxy_elan_command(self, args: List[str]) -> int:
         """Proxy execute elan command with streaming output"""
-        elan_path = self.get_elan_executable()
-        
-        if not elan_path:
+        if not self.elan_exe:
             if not self.install_elan():
                 return 1
         
         # Build complete command
-        cmd = [str(elan_path)] + args
+        cmd = [str(self.elan_exe)] + args
         
         try:
             # Pass directly to subprocess to maintain interactivity and streaming
@@ -174,12 +178,11 @@ class ElanManager:
     
     def get_installed_toolchains(self) -> List[str]:
         """Get list of installed toolchains"""
-        elan_path = self.get_elan_executable()
-        if not elan_path:
+        if not self.elan_exe:
             return []
         
         try:
-            output, error, code = execute_command([str(elan_path), 'toolchain', 'list'])
+            output, error, code = execute_command([str(self.elan_exe), 'toolchain', 'list'])
             if code == 0:
                 toolchains = []
                 for line in output.strip().split('\n'):
@@ -206,6 +209,6 @@ class ElanManager:
         
         if info['installed']:
             info['version'] = self.get_elan_version()
-            info['executable'] = str(self.get_elan_executable())
+            info['executable'] = str(self.elan_exe)
             info['toolchains'] = self.get_installed_toolchains()
         return info
