@@ -2,7 +2,7 @@
 
 __author__ = """Lean-zh Community"""
 __email__ = 'leanprover@outlook.com'
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 from .repo import RepoManager, ElanManager, LeanRepo
 from .utils import setup_logger, execute_command, working_directory

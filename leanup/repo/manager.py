@@ -459,7 +459,7 @@ class RepoManager:
 class LeanRepo(RepoManager):
     """Class for managing Lean repositories with lake support."""
     
-    def __init__(self, cwd: Union[str, Path]):
+    def __init__(self, cwd: Union[str, Path]=None):
         """Initialize LeanRepo with working directory.
         
         Args:
@@ -524,7 +524,7 @@ class LeanRepo(RepoManager):
         logger.debug("Executing lake command: " + ' '.join(command))
         return self.execute_command(command)
     
-    def lake_which(self, name: str) -> Tuple[str, str, int]:
+    def lake_env_which(self, name: str) -> Tuple[str, str, int]:
         """Check if a lake package is installed.
         
         Args:
@@ -533,7 +533,12 @@ class LeanRepo(RepoManager):
         Returns:
             Tuple containing stdout, stderr, and return code
         """
-        return self.lake(["which", name])
+        msg, err, code = self.lake(["env", "which", name])
+        if code == 0:
+            return msg, err, code
+        else:
+            logger.error(f"Error checking package {name}: {err}")
+            return msg, err, code
         
     def lake_init(self,
                   name: Optional[str] = None,
