@@ -39,7 +39,7 @@ class TestInstallConfig:
             branch='main'
         )
         
-        assert config.dest_name == 'user_repo_main'
+        assert config.dest_name == 'user/repo/main'
     
     def test_install_config_copy_and_update(self):
         """Test config copy and update methods"""

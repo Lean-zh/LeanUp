@@ -31,12 +31,7 @@ class InstallConfig:
         self._url = url
         self._dest_name = dest_name
         self._dest_dir = dest_dir
-        if isinstance(build_packages, str):
-            self._build_packages = [pkg.strip() for pkg in build_packages.strip('[]').split(',')]
-        elif isinstance(build_packages, list):
-            self._build_packages = build_packages
-        else:
-            self._build_packages = []
+        self._build_packages = build_packages
         self.branch = branch
         self.source = source
         self.lake_update = lake_update
@@ -54,7 +49,7 @@ class InstallConfig:
     @property
     def suffix(self):
         if self._suffix is None:
-            suffix = self._url.split('/')[-1]
+            suffix = self._url.strip().split('/')[-1]
             if suffix.endswith('.git'):
                 suffix = suffix[:-4]
             return suffix
@@ -63,9 +58,9 @@ class InstallConfig:
     @property
     def dest_name(self):
         if self._dest_name is None:
-            dest_name = self.suffix.replace('/', '_').lower()
+            dest_name = self.suffix.lower()
             if self.branch:
-                dest_name += f"_{self.branch}"
+                dest_name += f"/{self.branch}"
             return dest_name
         return self._dest_name
 
@@ -77,18 +72,15 @@ class InstallConfig:
 
     @property
     def build_packages(self):
-        if self._build_packages is None:
+        value = self._build_packages
+        if not value:
             return []
-        return self._build_packages
-    
-    @build_packages.setter
-    def build_packages(self, value: Union[str, List[str]]):
         if isinstance(value, str):
-            self._build_packages = [pkg.strip() for pkg in value.strip('[]').split(',')]
+            return [pkg.strip() for pkg in value.strip('[]').split(',')]
         elif isinstance(value, list):
-            self._build_packages = value
+            return value
         else:
-            self._build_packages = []
+            return []
     
     @property
     def is_valid(self):
@@ -520,6 +512,8 @@ class LeanRepo(RepoManager):
         Returns:
             Tuple containing stdout, stderr, and return code
         """
+        if isinstance(args, str):
+            args = [args]
         command = [str(self.lake_exe)] + args
         logger.debug("Executing lake command: " + ' '.join(command))
         return self.execute_command(command)
@@ -674,7 +668,7 @@ class LeanRepo(RepoManager):
         if repo_dir.exists():
             if config.override:
                 shutil.rmtree(repo_dir)
-                logger.info(f"Removed existing directory: {repo_dir}")
+                logger.info(f"{repo_dir} removed successfully.")
             else:
                 logger.info(f"Repository already exists at {repo_dir}")
                 return True

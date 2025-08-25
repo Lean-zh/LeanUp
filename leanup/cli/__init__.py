@@ -64,14 +64,11 @@ def status():
     # elan status
     if elan_manager.is_elan_installed():
         version = elan_manager.get_elan_version()
-        click.echo(f"elan: ✓ installed (version: {version})")
+        click.echo(f"\nelan version: {version}")
+        click.echo("---------------------\n")
         
         # Show toolchains
-        toolchains = elan_manager.get_installed_toolchains()
-        if toolchains:
-            click.echo(f"Toolchains: {', '.join(toolchains)}")
-        else:
-            click.echo("Toolchains: none")
+        elan_manager.proxy_elan_command(['show'])
     else:
         click.echo("elan: ✗ not installed")
 

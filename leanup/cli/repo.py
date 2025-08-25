@@ -32,7 +32,7 @@ def install(suffix: str, source: str, branch: Optional[str], force: bool,
             dest_dir: Optional[Path], dest_name: Optional[str], interactive: bool, lake_update: bool, lake_build: bool, build_packages: str):
     """Install a repository"""
     if interactive:
-        suffix = click.prompt("Repository name(required)", type=str, default=suffix)
+        suffix = click.prompt("Suffix (user/repo) (required)", type=str, default=suffix)
         source = click.prompt("Repository source", type=str, default=source)
         branch = click.prompt("Branch or tag", type=str, default=branch or "")
         config = InstallConfig(
@@ -40,13 +40,13 @@ def install(suffix: str, source: str, branch: Optional[str], force: bool,
             source=source,
             branch=branch
         )
-        if dest_dir:
-            config.dest_dir = dest_dir
-        config.dest_dir = click.prompt("Destination directory", type=click.Path(path_type=Path), default=config.dest_dir)
-        config.dest_name = click.prompt("Destination name", type=str, default=config.dest_name)
+        config._dest_dir = click.prompt("Destination directory", type=click.Path(path_type=Path), default=dest_dir)
+        if dest_name is None:
+            dest_name = config.suffix
+        config._dest_name = click.prompt("Destination name", type=str, default=dest_name)
         config.lake_update = click.confirm("Run lake update after cloning?", default=lake_update)
         config.lake_build = click.confirm("Run lake build after cloning?", default=lake_build)
-        config.build_packages = click.prompt("Packages to build after cloning(e.g. REPL,REPL.Main)", type=str, default=build_packages or "" )
+        config._build_packages = click.prompt("Packages to build after cloning(e.g. REPL,REPL.Main)", type=str, default=build_packages or "" )
         if config.dest_path.exists():
             config.override = click.confirm(f"Repository {config.dest_name} already exists in {config.dest_dir}. Override?", default=False)
             if not config.override:
