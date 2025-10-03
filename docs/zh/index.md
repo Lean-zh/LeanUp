@@ -11,7 +11,7 @@
 
 ## 快速开始
 
-查看[快速开始](getting-started/quickstart.zh.md)指南，开始使用 LeanUp。
+查看[快速开始](getting-started/quickstart.md)指南，开始使用 LeanUp。
 
 ## 命令行界面
 
