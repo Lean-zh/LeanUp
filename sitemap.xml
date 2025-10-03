@@ -2,30 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://www.leanprover.cn/LeanUp/</loc>
-        <lastmod>2025-09-19</lastmod>
+        <lastmod>2025-10-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/"/>
         <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/"/>
     </url>
     <url>
         <loc>https://www.leanprover.cn/LeanUp/getting-started/quickstart/</loc>
-        <lastmod>2025-09-19</lastmod>
+        <lastmod>2025-10-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/getting-started/quickstart/"/>
         <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart/"/>
     </url>
     <url>
+        <loc>https://www.leanprover.cn/LeanUp/getting-started/quickstart.zh/</loc>
+        <lastmod>2025-10-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/getting-started/quickstart.zh/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart.zh/"/>
+    </url>
+    <url>
         <loc>https://www.leanprover.cn/LeanUp/zh/</loc>
-        <lastmod>2025-09-19</lastmod>
+        <lastmod>2025-10-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/"/>
     </url>
     <url>
         <loc>https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart/</loc>
-        <lastmod>2025-09-19</lastmod>
+        <lastmod>2025-10-03</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/getting-started/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart.zh/</loc>
+        <lastmod>2025-10-03</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://www.leanprover.cn/LeanUp/zh/getting-started/quickstart.zh/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://www.leanprover.cn/LeanUp/getting-started/quickstart.zh/"/>
     </url>
 </urlset>
