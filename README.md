@@ -61,6 +61,9 @@ leanup elan --help
 leanup elan toolchain list
 leanup elan toolchain install stable
 leanup elan default stable
+
+# 创建指定 Lean 版本的 mathlib 项目
+leanup create 4.14.0
 ```
 
 ## 📖 详细使用指南
@@ -133,6 +136,31 @@ leanup repo list -n mathlib
 - 是否在克隆后运行 `lake build`
 - 要编译的特定构建包
 - 是否覆盖现有目录
+
+### 创建新项目
+
+`leanup create` 用于创建一个新的 Lean + mathlib 项目目录。第一版工作流直接承接 `Projects/create_project.sh` 的核心逻辑。
+
+```bash
+# 创建指定版本的项目目录
+leanup create 4.14.0
+
+# 指定项目名和目标目录
+leanup create 4.14.0 --project-name myproj --dest-dir /path/to/workspace
+
+# 强制交互补全参数
+leanup create -i
+
+# 完全禁止交互，缺参时报错
+leanup create -I 4.14.0
+```
+
+默认行为：
+
+- 缺少必要参数时自动交互补全
+- 必要参数齐全时直接执行
+- `-I` 下缺参或目录冲突直接失败
+- 默认按版本号生成目标目录，例如 `v4.14.0`
 
 ### 编程接口
 

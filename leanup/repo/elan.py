@@ -3,7 +3,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 import requests
 
 from leanup.const import OS_TYPE
@@ -149,13 +149,13 @@ class ElanManager:
             logger.error(f"Error occurred during elan installation: {e}")
             return False
     
-    def install_lean(self, version:str=None)-> bool:
+    def install_lean(self, version: Optional[str] = None) -> bool:
+        requested_version = version or 'stable'
         installed = self.get_installed_toolchains()
-        if version in installed:
+        if requested_version in installed:
             logger.info(f"Lean toolchain {version} is already installed")
             return True
-        version = version or 'stable'
-        cmd = ['toolchain', 'install', version]
+        cmd = ['toolchain', 'install', requested_version]
         result = self.proxy_elan_command(cmd)
         return result == 0
 
@@ -197,7 +197,7 @@ class ElanManager:
             logger.error(f"Failed to get toolchain list: {e}")
             return []
     
-    def get_status_info(self) -> Dict[str, any]:
+    def get_status_info(self) -> Dict[str, Any]:
         """Get elan status information"""
         info = {
             'installed': self.is_elan_installed(),

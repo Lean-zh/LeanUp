@@ -78,6 +78,22 @@ leanup repo list --search-dir /path/to/repos
 leanup repo list -n mathlib
 ```
 
+### 创建新项目
+
+```bash
+# 创建指定 Lean 版本的 mathlib 项目
+leanup create 4.14.0
+
+# 指定项目名和目标目录
+leanup create 4.14.0 --project-name myproj --dest-dir /path/to/workspace
+
+# 强制进入交互补全
+leanup create -i
+
+# 完全禁止交互
+leanup create -I 4.14.0
+```
+
 ## 使用 InstallConfig
 
 `InstallConfig` 类提供了编程方式配置仓库安装：

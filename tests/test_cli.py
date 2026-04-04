@@ -1,7 +1,7 @@
 import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, ANY
 from click.testing import CliRunner
 from leanup.const import OS_TYPE
 from leanup.cli import cli
@@ -153,4 +153,61 @@ class TestCLI:
         
         assert result.exit_code == 1
         assert 'elan is not installed. Run \'leanup init\' first.' in result.output
+
+    @patch('leanup.cli.LeanRepo.create_math_project')
+    def test_create_command_non_interactive(self, mock_create_math_project):
+        """Test create command with explicit args"""
+        mock_create_math_project.return_value = True
+
+        result = self.runner.invoke(
+            cli,
+            ['create', '4.14.0', '-n', 'lean4web', '-d', '/tmp']
+        )
+
+        assert result.exit_code == 0
+        assert 'Creating new Lean 4 project of version v4.14.0...' in result.output
+        mock_create_math_project.assert_called_once_with(
+            lean_version='v4.14.0',
+            project_name='lean4web',
+            force=False,
+            progress=ANY,
+        )
+
+    @patch('leanup.cli.click.prompt')
+    @patch('leanup.cli.LeanRepo.create_math_project')
+    def test_create_command_prompts_for_missing_version(self, mock_create_math_project, mock_prompt):
+        """Test create command prompts when version is missing"""
+        mock_create_math_project.return_value = True
+        mock_prompt.return_value = '4.15.0'
+
+        result = self.runner.invoke(cli, ['create'])
+
+        assert result.exit_code == 0
+        mock_prompt.assert_called_once()
+        mock_create_math_project.assert_called_once_with(
+            lean_version='v4.15.0',
+            project_name='lean4web',
+            force=False,
+            progress=ANY,
+        )
+
+    @patch('leanup.cli.LeanRepo.create_math_project')
+    def test_create_command_no_interactive_requires_version(self, mock_create_math_project):
+        """Test create command fails without version in no-interactive mode"""
+        result = self.runner.invoke(cli, ['create', '-I'])
+
+        assert result.exit_code == 1
+        assert 'Error: Lean version is required' in result.output
+        mock_create_math_project.assert_not_called()
+
+    @patch('leanup.cli.LeanRepo.create_math_project')
+    def test_create_command_existing_directory_requires_force_in_no_interactive_mode(self, mock_create_math_project):
+        """Test create command fails when target exists without force in no-interactive mode"""
+        with self.runner.isolated_filesystem():
+            Path('v4.14.0').mkdir()
+            result = self.runner.invoke(cli, ['create', '4.14.0', '-I'])
+
+        assert result.exit_code == 1
+        assert 'Use --force to replace it' in result.output
+        mock_create_math_project.assert_not_called()
         

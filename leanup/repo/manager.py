@@ -3,12 +3,12 @@ import shutil
 import re
 from pathlib import Path
 from token import OP
-from typing import Optional, Union, List, Dict, Any, Tuple
+from typing import Optional, Union, List, Dict, Any, Tuple, Callable
 import git
 import os
 import toml
 from leanup.const import OS_TYPE, LEANUP_CACHE_DIR
-from leanup.utils.basic import execute_command
+from leanup.utils.basic import execute_command, working_directory
 from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("repo_manager")
@@ -49,7 +49,10 @@ class InstallConfig:
     @property
     def suffix(self):
         if self._suffix is None:
-            suffix = self._url.strip().split('/')[-1]
+            url = self._url
+            if url is None:
+                raise ValueError("suffix or url is required")
+            suffix = url.strip().split('/')[-1]
             if suffix.endswith('.git'):
                 suffix = suffix[:-4]
             return suffix
@@ -88,7 +91,7 @@ class InstallConfig:
 
     @property
     def dest_path(self)->Path:
-        return self.dest_dir / self.dest_name
+        return self.dest_dir / str(self.dest_name)
     
     def get(self, key: str, default: Any = None) -> Any:
         """Get config value"""
@@ -126,7 +129,7 @@ class InstallConfig:
 class RepoManager:
     """Class for managing directory operations and git functionality."""
     
-    def __init__(self, cwd: Union[str, Path]=None):
+    def __init__(self, cwd: Optional[Union[str, Path]] = None):
         """Initialize with a working directory.
         
         Args:
@@ -134,9 +137,8 @@ class RepoManager:
         """
         if cwd is None:
             cwd = Path.cwd().resolve()
-        else:
-            self.cwd = Path(cwd).resolve()
-        self._git_repo = None
+        self.cwd = Path(cwd).resolve()
+        self._git_repo: Optional[git.Repo] = None
         self._check_git_repo()
     
     def _check_git_repo(self) -> None:
@@ -334,11 +336,13 @@ class RepoManager:
         if not self.is_gitrepo:
             return {"error": "Not a git repository"}
         try:
+            repo = self._git_repo
+            assert repo is not None
             return {
-                "branch": self._git_repo.active_branch.name,
-                "is_dirty": self._git_repo.is_dirty(),
-                "untracked_files": self._git_repo.untracked_files,
-                "modified_files": [item.a_path for item in self._git_repo.index.diff(None)]
+                "branch": repo.active_branch.name,
+                "is_dirty": repo.is_dirty(),
+                "untracked_files": repo.untracked_files,
+                "modified_files": [item.a_path for item in repo.index.diff(None)]
             }
         except Exception as e:
             return {"error": str(e)}
@@ -365,16 +369,18 @@ class RepoManager:
             logger.warning("Not a git repository")
             return False
         try:
+            repo = self._git_repo
+            assert repo is not None
             if paths is None:
                 # Add all files
-                self._git_repo.git.add(A=True)
+                repo.git.add(A=True)
             elif isinstance(paths, str):
                 # Add single file
-                self._git_repo.git.add(paths)
+                repo.git.add(paths)
             else:
                 # Add multiple files
                 for path in paths:
-                    self._git_repo.git.add(path)
+                    repo.git.add(path)
             return True
         except Exception as e:
             logger.error(f"Error adding files to git: {e}")
@@ -394,7 +400,9 @@ class RepoManager:
             return False
         
         try:
-            self._git_repo.git.commit(m=message)
+            repo = self._git_repo
+            assert repo is not None
+            repo.git.commit(m=message)
             return True
         except Exception as e:
             logger.error(f"Error committing changes: {e}")
@@ -415,10 +423,12 @@ class RepoManager:
             return False
         
         try:
+            repo = self._git_repo
+            assert repo is not None
             if branch:
-                self._git_repo.git.pull(remote, branch)
+                repo.git.pull(remote, branch)
             else:
-                self._git_repo.git.pull()
+                repo.git.pull()
             return True
         except Exception as e:
             logger.error(f"Error pulling changes: {e}")
@@ -439,10 +449,12 @@ class RepoManager:
             return False
         
         try:
+            repo = self._git_repo
+            assert repo is not None
             if branch:
-                self._git_repo.git.push(remote, branch)
+                repo.git.push(remote, branch)
             else:
-                self._git_repo.git.push()
+                repo.git.push()
             return True
         except Exception as e:
             logger.error(f"Error pushing changes: {e}")
@@ -451,7 +463,7 @@ class RepoManager:
 class LeanRepo(RepoManager):
     """Class for managing Lean repositories with lake support."""
     
-    def __init__(self, cwd: Union[str, Path]=None):
+    def __init__(self, cwd: Optional[Union[str, Path]] = None):
         """Initialize LeanRepo with working directory.
         
         Args:
@@ -502,6 +514,42 @@ class LeanRepo(RepoManager):
         except Exception as e:
             logger.error(f"Error reading lean-toolchain: {e}")
             return None
+
+    @staticmethod
+    def normalize_lean_version(version: str) -> str:
+        """Normalize Lean version to v4.x.x format."""
+        if not version:
+            raise ValueError("Lean version is required")
+        version = version.strip()
+        if not re.match(r'^v?4\.\d+\.\d+$', version):
+            raise ValueError("Invalid version format. Must be v4.x.x or 4.x.x")
+        if not version.startswith('v'):
+            version = f"v{version}"
+        return version
+
+    @staticmethod
+    def package_name_to_module_name(name: str) -> str:
+        """Convert a package name into a Lean module name."""
+        parts = [part for part in re.split(r'[^A-Za-z0-9]+', name) if part]
+        if not parts:
+            raise ValueError("Project name is required")
+        return ''.join(part[:1].upper() + part[1:] for part in parts)
+
+    @staticmethod
+    def build_math_lakefile(package_name: str, lean_version: str) -> str:
+        """Build the default mathlib-based lakefile."""
+        module_name = LeanRepo.package_name_to_module_name(package_name)
+        return (
+            "import Lake\n"
+            "open Lake DSL\n\n"
+            f"package «{package_name}» where\n"
+            "  -- add any additional package configuration options here\n\n"
+            "require mathlib from git\n"
+            f"   \"https://github.com/leanprover-community/mathlib4.git\" @ \"{lean_version}\"\n\n"
+            "@[default_target]\n"
+            f"lean_lib «{module_name}» where\n"
+            "  -- add any library configuration options here\n"
+        )
     
     def lake(self, args: List[str]) -> Tuple[str, str, int]:
         """Execute lake command with given arguments.
@@ -514,9 +562,15 @@ class LeanRepo(RepoManager):
         """
         if isinstance(args, str):
             args = [args]
+        if self.lake_exe is None:
+            return "", "lake executable not found", 1
         command = [str(self.lake_exe)] + args
         logger.debug("Executing lake command: " + ' '.join(command))
         return self.execute_command(command)
+
+    def lake_cache_get(self) -> Tuple[str, str, int]:
+        """Download mathlib cache using lake."""
+        return self.lake(["exe", "cache", "get"])
     
     def lake_env_which(self, name: str) -> Tuple[str, str, int]:
         """Check if a lake package is installed.
@@ -699,4 +753,68 @@ class LeanRepo(RepoManager):
                     logger.info("Running lake build")
                 if not repo.lake_build(package):
                     logger.warning(f"Failed to build package: {package}")
+        return True
+
+    def create_math_project(
+        self,
+        lean_version: str,
+        project_name: str = "lean4web",
+        force: bool = False,
+        progress: Optional[Callable[[str], None]] = None,
+        ) -> bool:
+        """Create a mathlib-based Lean project for a specific version."""
+        def emit(message: str) -> None:
+            if progress is not None:
+                progress(message)
+
+        emit("INFO: Validate Lean version")
+        lean_version = self.normalize_lean_version(lean_version)
+        emit("INFO: Prepare target directory")
+        if self.cwd.exists():
+            if force:
+                shutil.rmtree(self.cwd)
+            elif any(self.cwd.iterdir()):
+                raise FileExistsError(f"Directory {self.cwd} already exists")
+        self.cwd.parent.mkdir(parents=True, exist_ok=True)
+
+        with working_directory() as temp_dir:
+            temp_repo = LeanRepo(temp_dir)
+            emit("INFO: Run lake new")
+            stdout, stderr, returncode = temp_repo.lake(["new", project_name, "math.lean"])
+            if returncode != 0:
+                raise RuntimeError(stderr or stdout or "lake new failed")
+
+            project_dir = temp_dir / project_name
+            project_dir.mkdir(exist_ok=True)
+            emit("INFO: Write lean-toolchain")
+            (project_dir / "lean-toolchain").write_text(
+                f"leanprover/lean4:{lean_version}",
+                encoding="utf-8",
+            )
+            emit("INFO: Write lakefile.lean")
+            (project_dir / "lakefile.lean").write_text(
+                self.build_math_lakefile(project_name, lean_version),
+                encoding="utf-8",
+            )
+
+            project_repo = LeanRepo(project_dir)
+            emit("INFO: Run lake update")
+            stdout, stderr, returncode = project_repo.lake_update()
+            if returncode != 0:
+                raise RuntimeError(stderr or stdout or "lake update failed")
+
+            emit("INFO: Run lake exe cache get")
+            stdout, stderr, returncode = project_repo.lake_cache_get()
+            if returncode != 0:
+                raise RuntimeError(stderr or stdout or "lake exe cache get failed")
+
+            emit("INFO: Run lake build")
+            stdout, stderr, returncode = project_repo.lake_build()
+            if returncode != 0:
+                raise RuntimeError(stderr or stdout or "lake build failed")
+
+            emit("INFO: Move project to target directory")
+            if self.cwd.exists():
+                shutil.rmtree(self.cwd)
+            shutil.move(str(project_dir), str(self.cwd))
         return True

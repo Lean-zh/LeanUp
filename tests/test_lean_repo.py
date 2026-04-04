@@ -236,3 +236,62 @@ class TestLeanRepo:
         assert info['has_lakefile_lean'] is False
         assert info['build_dir_exists'] is True
         assert info['has_lake_manifest'] is False
+
+    def test_normalize_lean_version_adds_prefix(self):
+        assert LeanRepo.normalize_lean_version('4.14.0') == 'v4.14.0'
+
+    def test_normalize_lean_version_keeps_prefixed_version(self):
+        assert LeanRepo.normalize_lean_version('v4.14.0') == 'v4.14.0'
+
+    def test_build_math_lakefile_uses_version_and_package_name(self):
+        content = LeanRepo.build_math_lakefile('lean4web', 'v4.14.0')
+
+        assert 'package «lean4web» where' in content
+        assert '"https://github.com/leanprover-community/mathlib4.git" @ "v4.14.0"' in content
+        assert 'lean_lib «Lean4web» where' in content
+
+    def test_package_name_to_module_name_handles_separators(self):
+        assert LeanRepo.package_name_to_module_name('lean4-web_app') == 'Lean4WebApp'
+
+    @patch('leanup.repo.manager.shutil.move')
+    @patch.object(LeanRepo, 'lake_build')
+    @patch.object(LeanRepo, 'lake_cache_get')
+    @patch.object(LeanRepo, 'lake_update')
+    @patch.object(LeanRepo, 'lake')
+    def test_create_math_project_runs_expected_stages(
+        self,
+        mock_lake,
+        mock_lake_update,
+        mock_lake_cache_get,
+        mock_lake_build,
+        mock_move,
+    ):
+        mock_lake.return_value = ('', '', 0)
+        mock_lake_update.return_value = ('', '', 0)
+        mock_lake_cache_get.return_value = ('', '', 0)
+        mock_lake_build.return_value = ('', '', 0)
+        progress_messages = []
+
+        result = self.lean_repo.create_math_project(
+            lean_version='4.14.0',
+            project_name='lean4web',
+            progress=progress_messages.append,
+        )
+
+        assert result is True
+        assert progress_messages == [
+            'INFO: Validate Lean version',
+            'INFO: Prepare target directory',
+            'INFO: Run lake new',
+            'INFO: Write lean-toolchain',
+            'INFO: Write lakefile.lean',
+            'INFO: Run lake update',
+            'INFO: Run lake exe cache get',
+            'INFO: Run lake build',
+            'INFO: Move project to target directory',
+        ]
+        mock_lake.assert_called_once_with(['new', 'lean4web', 'math.lean'])
+        mock_lake_update.assert_called_once()
+        mock_lake_cache_get.assert_called_once()
+        mock_lake_build.assert_called_once()
+        mock_move.assert_called_once()

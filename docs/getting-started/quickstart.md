@@ -78,6 +78,22 @@ leanup repo list --search-dir /path/to/repos
 leanup repo list -n mathlib
 ```
 
+### Create A New Project
+
+```bash
+# Create a mathlib project for a specific Lean version
+leanup create 4.14.0
+
+# Choose project name and target directory
+leanup create 4.14.0 --project-name myproj --dest-dir /path/to/workspace
+
+# Force interactive parameter completion
+leanup create -i
+
+# Disable prompts entirely
+leanup create -I 4.14.0
+```
+
 ## Using InstallConfig
 
 The `InstallConfig` class provides a programmatic way to configure repository installations:
