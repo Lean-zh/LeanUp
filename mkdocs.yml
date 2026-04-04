@@ -104,4 +104,6 @@ nav:
     - Create Command: design/create-command.md
   - Testing:
     - Create Command Test Design: testing/create-command-test-design.md
+  - Development:
+    - CLI And Development Conventions: development/cli-conventions.md
   # - API Reference: api-reference.md

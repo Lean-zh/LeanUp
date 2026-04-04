@@ -201,6 +201,19 @@ stdout, stderr, returncode = lean_repo.lake_env_lean("Main.lean")
 
 ## 🛠️ 开发
 
+### CLI / 测试 / 文档约定
+
+当前重构阶段，`LeanUp` 采用以下最小工程约定：
+
+- 新交互式 CLI 统一支持 `-i` / `-I`
+- 必要参数缺失时自动进入交互，参数齐全时直接执行
+- 交互默认值必须与最终执行值一致
+- 交互式 CLI 优先采用 doc-first 测试设计
+- 每个阶段必须同时补代码、文档和测试
+- 每个阶段结束时单独 commit
+
+更完整的说明见：`docs/development/cli-conventions.md`
+
 ### 环境设置
 
 ```bash
