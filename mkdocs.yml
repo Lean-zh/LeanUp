@@ -100,4 +100,8 @@ nav:
     - What LeanUp Has Today: blog/what-leanup-has-today.md
   - Getting Started:
     - Quick Start: getting-started/quickstart.md
+  - Design:
+    - Create Command: design/create-command.md
+  - Testing:
+    - Create Command Test Design: testing/create-command-test-design.md
   # - API Reference: api-reference.md
