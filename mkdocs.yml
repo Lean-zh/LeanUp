@@ -96,6 +96,8 @@ extra:
       link: https://github.com/Lean-zh/LeanUp
 nav:
   - Home: index.md
+  - Blog:
+    - What LeanUp Has Today: blog/what-leanup-has-today.md
   - Getting Started:
     - Quick Start: getting-started/quickstart.md
   # - API Reference: api-reference.md
