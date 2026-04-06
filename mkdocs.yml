@@ -1,5 +1,5 @@
-site_name: LeanUp Documentation
-site_description: Python package for Lean Environment Management
+site_name: LeanUp 文档
+site_description: 用于管理 Lean 数学证明语言环境的 Python 工具
 site_author: Lean-zh Community
 site_url: https://www.leanprover.cn/LeanUp/
 
@@ -36,30 +36,10 @@ theme:
     - content.code.annotate
     - content.action.edit
     - content.action.view
-  language: en
+  language: zh
 
 plugins:
   - search
-  - i18n:
-      docs_structure: folder
-      fallback_to_default: true
-      reconfigure_material: true
-      reconfigure_search: true
-      languages:
-        - locale: en
-          default: true
-          name: English
-          build: true
-          site_name: "LeanUp Documentation"
-        - locale: zh
-          name: 中文
-          build: true
-          site_name: "LeanUp 文档"
-          nav_translations:
-            Home: 首页
-            Getting Started: 开始使用
-            Quick Start: 快速开始
-            API Reference: API 文档
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -84,18 +64,11 @@ markdown_extensions:
       custom_checkbox: true
 
 extra:
-  alternate:
-    - name: English
-      link: /LeanUp/
-      lang: en
-    - name: 中文
-      link: /LeanUp/zh/
-      lang: zh
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/Lean-zh/LeanUp
 nav:
-  - Home: index.md
-  - Getting Started:
-    - Quick Start: getting-started/quickstart.md
+  - 首页: index.md
+  - 开始使用:
+    - 快速开始: getting-started/quickstart.md
   # - API Reference: api-reference.md

@@ -16,13 +16,11 @@
 
 **一个用于管理 Lean 数学证明语言环境的 Python 工具**
 
-[English](README-en.md) | [简体中文](README.md)
-
 </div>
 
 ## 🎯 功能特性
 
-- **📦 仓库管理**: 安装和管理 Lean 仓库，支持交互式配置
+- **📦 仓库管理**: 安装和管理 Lean 仓库，支持命令优先、交互兜底的配置流程
 - **🌍 跨平台支持**: 支持 Linux、macOS 和 Windows
 - **📦 简单易用**: 通过 `pip install leanup` 快速安装
 - **🔄 命令代理**: 透明代理所有 elan 命令，无缝体验
@@ -104,8 +102,11 @@ leanup repo install Lean-zh/leanup -d /path/to/custom/dir
 # 控制构建选项
 leanup repo install leanprover-community/mathlib4 --lake-build
 
-# 交互式
+# 交互式补参
 leanup repo install leanprover-community/mathlib4 -i
+
+# 禁止交互，参数不足时直接报错
+leanup repo install -I leanprover-community/mathlib4
 
 # 指定要构建的包
 leanup repo install Lean-zh/repl --build-packages "REPL,REPL.Main"
@@ -122,7 +123,7 @@ leanup repo list -n mathlib
 
 ### 交互式安装
 
-使用 `leanup repo install` 的 `--interactive` 标志时，您可以配置：
+使用 `leanup repo install -i` 时，您可以配置：
 
 - 仓库名称（必需）
 - 仓库源的基础 URL
@@ -133,6 +134,13 @@ leanup repo list -n mathlib
 - 是否在克隆后运行 `lake build`
 - 要编译的特定构建包
 - 是否覆盖现有目录
+
+默认规则：
+
+- 命令优先，交互兜底
+- 缺必要参数时自动进入交互
+- `-i` 强制交互
+- `-I` 禁止交互，参数不足时直接报错
 
 ### 编程接口
 
@@ -201,6 +209,11 @@ stdout, stderr, returncode = lean_repo.lake_env_lean("Main.lean")
 
 ## 🛠️ 开发
 
+仓库级开发规范见：
+
+- `AGENTS.md`
+- `DEVELOP.md`
+
 ### 环境设置
 
 ```bash
@@ -228,7 +241,7 @@ coverage report -m
 
 ## ⚙️ 配置
 
-LeanUp 使用位于 `~/.leanup/config.toml` 的配置文件。您可以自定义：
+LeanUp 使用位于 `~/.leanup/config.yaml` 的配置文件。您可以自定义：
 
 - 默认仓库源
 - 仓库缓存目录
