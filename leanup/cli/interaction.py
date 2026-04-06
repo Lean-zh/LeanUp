@@ -61,9 +61,57 @@ def resolve_value(*candidates: Any) -> Any:
     return None
 
 
+def _get_console():
+    try:
+        from rich.console import Console
+    except ImportError:
+        return None
+    return Console(stderr=True)
+
+
+def _render_heading(title: str, subtitle: str | None = None) -> None:
+    console = _get_console()
+    if not console:
+        if subtitle:
+            click.echo(f"\n{title}\n{subtitle}", err=True)
+        else:
+            click.echo(f"\n{title}", err=True)
+        return
+
+    try:
+        from rich.panel import Panel
+    except ImportError:
+        if subtitle:
+            click.echo(f"\n{title}\n{subtitle}", err=True)
+        else:
+            click.echo(f"\n{title}", err=True)
+        return
+
+    console.print(
+        Panel.fit(
+            subtitle or "",
+            title=f"[bold cyan]{title}[/bold cyan]",
+            border_style="cyan",
+            padding=(0, 1),
+        )
+    )
+
+
+def _render_note(message: str) -> None:
+    console = _get_console()
+    if not console:
+        click.echo(message, err=True)
+        return
+    console.print(f"[dim]{message}[/dim]")
+
+
 def ask_text(message: str, default: str = "") -> str:
-    return click.prompt(message, default=default, show_default=bool(default), err=True)
+    _render_heading("Input", message)
+    if default:
+        _render_note(f"Press Enter to keep default: {default}")
+    return click.prompt("Value", default=default, show_default=bool(default), err=True)
 
 
 def ask_confirm(message: str, default: bool = True) -> bool:
-    return click.confirm(message, default=default, err=True)
+    _render_heading("Confirm", message)
+    return click.confirm("Continue", default=default, err=True)
