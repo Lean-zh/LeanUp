@@ -55,12 +55,13 @@ leanup mathlib cache list
 cd /path/to/repo
 leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache
 
-# 如果本机安装了 pigz，也可以显式启用并发压缩
-leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache --pigz
+# 如需关闭并发压缩，可以显式禁用 pigz
+leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
-- `--pigz` 会在本机存在 `pigz` 时启用并发压缩
+- 默认会在本机存在 `pigz` 时启用并发压缩
 - 如果系统里没有 `pigz`，命令会自动回退到普通 gzip 打包
+- `--no-pigz` 可显式关闭并发压缩
 
 ### 仓库管理
 

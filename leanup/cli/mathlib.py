@@ -51,7 +51,7 @@ def list_cache() -> None:
 )
 @click.option(
     "--pigz/--no-pigz",
-    default=False,
+    default=True,
     help="Use pigz for parallel compression when it is available.",
 )
 def pack_cache(repo_dir: Path, output_dir: Path, lean_version: str, pigz: bool) -> None:

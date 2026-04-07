@@ -94,29 +94,54 @@ class MathlibCacheManager:
             raise ValueError(f"Packages directory not found: {packages_dir}")
 
         source_dir = packages_dir.resolve() if packages_dir.is_symlink() else packages_dir
+        logger.info(f"Preparing packages archive from {packages_dir}")
+        if packages_dir.is_symlink():
+            logger.info(f"Resolved root packages symlink to {source_dir}")
 
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        if output_file.exists():
-            output_file.unlink()
+        temp_output = output_file.parent / f".{output_file.name}.tmp"
+        remove_path(temp_output)
 
         if use_pigz and shutil.which("pigz"):
-            self._pack_with_pigz(source_dir, output_file)
+            logger.info("Using pigz for parallel compression")
+            self._pack_with_pigz(source_dir, temp_output)
         else:
-            with tarfile.open(output_file, "w:gz", dereference=False) as tar:
+            if use_pigz:
+                logger.info("pigz requested but not found; falling back to standard gzip")
+            else:
+                logger.info("Using standard gzip compression")
+            logger.info(f"Writing tar.gz archive to temporary file {temp_output}")
+            with tarfile.open(temp_output, "w:gz", dereference=False) as tar:
                 tar.add(source_dir, arcname="packages", recursive=True)
+
+        remove_path(output_file)
+        temp_output.replace(output_file)
 
         logger.info(f"Packed {source_dir} -> {output_file}")
         return output_file
 
     def _pack_with_pigz(self, source_dir: Path, output_file: Path) -> None:
-        with tempfile.NamedTemporaryFile(suffix=".tar", delete=False) as handle:
-            temp_tar = Path(handle.name)
-
-        try:
-            with tarfile.open(temp_tar, "w", dereference=False) as tar:
-                tar.add(source_dir, arcname="packages", recursive=True)
-
-            with output_file.open("wb") as output_handle:
-                subprocess.run(["pigz", "-c", str(temp_tar)], check=True, stdout=output_handle)
-        finally:
-            temp_tar.unlink(missing_ok=True)
+        logger.info(f"Streaming tar archive from {source_dir.parent} into pigz")
+        transform = f"s,^{re.escape(source_dir.name)},packages,"
+        with output_file.open("wb") as output_handle:
+            tar_proc = subprocess.Popen(
+                [
+                    "tar",
+                    "-C",
+                    str(source_dir.parent),
+                    "--transform",
+                    transform,
+                    "-cf",
+                    "-",
+                    source_dir.name,
+                ],
+                stdout=subprocess.PIPE,
+            )
+            try:
+                subprocess.run(["pigz", "-c"], check=True, stdin=tar_proc.stdout, stdout=output_handle)
+            finally:
+                if tar_proc.stdout is not None:
+                    tar_proc.stdout.close()
+                tar_returncode = tar_proc.wait()
+                if tar_returncode != 0:
+                    raise subprocess.CalledProcessError(tar_returncode, tar_proc.args)
