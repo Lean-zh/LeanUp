@@ -37,9 +37,9 @@ def _require_non_empty(value: str, field_name: str) -> str:
 @click.option(
     "--dependency-mode",
     "-m",
-    type=click.Choice(["symlink", "build"]),
+    type=click.Choice(["symlink", "copy"]),
     default=None,
-    help="Use cached mathlib packages via symlink, or build dependencies from scratch.",
+    help="Attach cached mathlib packages via symlink, or copy them into the project.",
 )
 @click.option("--force", "-f", is_flag=True, help="Replace the target directory if it exists.")
 @click.option(
@@ -58,7 +58,7 @@ def setup_project(
     interactive: bool | None,
 ) -> None:
     """Create a Lean project with a pinned toolchain and optional mathlib cache reuse."""
-    usage = "Usage: leanup setup [PATH] --lean-version <version> [--name <name>] [--mathlib/--no-mathlib] [--dependency-mode symlink|build] [--force] [-i|-I]"
+    usage = "Usage: leanup setup [PATH] --lean-version <version> [--name <name>] [--mathlib/--no-mathlib] [--dependency-mode symlink|copy] [--force] [-i|-I]"
     missing_required = path is None or not lean_version
     interactive, can_prompt, force_interactive, _, need_prompt = (
         resolve_interactive_mode(
@@ -105,15 +105,15 @@ def setup_project(
         except ValueError:
             preview_mode = dependency_mode
 
-        default_mode = preview_mode or dependency_mode or ("build" if not mathlib else "symlink")
+        default_mode = preview_mode or dependency_mode or ("copy" if not mathlib else "symlink")
 
         if mathlib:
             dependency_mode = ask_text(
-                "Dependency mode (symlink/build)",
+                "Dependency mode (symlink/copy)",
                 default=default_mode,
             ).strip() or default_mode
         else:
-            dependency_mode = "build"
+            dependency_mode = "copy"
 
         force = ask_confirm("Replace the target directory if it exists?", default=force)
 
@@ -138,7 +138,7 @@ def setup_project(
     click.echo(f"  Dependency mode: {result.dependency_mode}")
     if result.cache_dir:
         click.echo(f"  Cache dir: {result.cache_dir}")
-        if result.used_cache:
-            click.echo("  Reused cached mathlib packages via symlink.")
-        else:
-            click.echo("  Refreshed the shared mathlib package cache for this Lean version.")
+    if result.used_cache:
+        click.echo(f"  Reused cached mathlib packages via {result.dependency_mode}.")
+    else:
+        click.echo("  Refreshed the shared mathlib package cache for this Lean version.")
