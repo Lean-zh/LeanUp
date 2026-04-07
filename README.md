@@ -114,9 +114,31 @@ leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 
 - `--dependency-mode symlink` 只在启用 `mathlib` 时可用
 - 默认缓存目录为 `LEANUP_CACHE_DIR/setup/mathlib/<version>/packages`
+- 在当前 workspace 中，默认也会尝试从 `reference/Projects/cache/<version>/packages.tar.gz` 自动导入缓存
 - 默认行为是：有缓存就复用，没有缓存就自动构建并刷新缓存
 - 显式指定 `--dependency-mode symlink` 时，如果当前版本还没有缓存，会直接报错
 - `setup` 会确保对应 Lean toolchain 已通过 `elan` 安装
+
+### 管理 mathlib 缓存
+
+```bash
+# 查看 LeanUp 已有缓存，以及 reference 中可导入的缓存
+leanup mathlib cache list
+
+# 只看本地已导入缓存
+leanup mathlib cache list --local-only
+
+# 只看可从 reference 导入的缓存
+leanup mathlib cache list --importable-only
+
+# 导入某个版本的 reference cache 到 LeanUp 默认缓存目录
+leanup mathlib cache import v4.22.0
+
+# 一次性导入全部 reference cache
+leanup mathlib cache import --all
+```
+
+如果需要覆盖 reference cache 来源目录，可以设置环境变量 `LEANUP_MATHLIB_CACHE_SOURCE`，或者在命令里传 `--source-dir`。
 
 ### 交互式安装
 

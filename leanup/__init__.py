@@ -7,6 +7,7 @@ __version__ = '0.1.9'
 from .repo import (
     RepoManager,
     ElanManager,
+    MathlibCacheManager,
     LeanRepo,
     LeanProjectSetup,
     SetupConfig,
@@ -15,7 +16,7 @@ from .repo import (
 from .utils import setup_logger, execute_command, working_directory
 
 __all__ = [
-    'RepoManager', 'ElanManager', 'LeanRepo',
+    'RepoManager', 'ElanManager', 'MathlibCacheManager', 'LeanRepo',
     'LeanProjectSetup', 'SetupConfig', 'SetupResult',
     "setup_logger", "execute_command", "working_directory"
 ]

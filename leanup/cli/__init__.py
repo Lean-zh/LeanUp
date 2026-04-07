@@ -2,6 +2,7 @@ import click
 import sys
 
 from leanup.utils.custom_logger import setup_logger
+from leanup.cli.mathlib import mathlib
 from leanup.cli.repo import repo
 from leanup.cli.setup import setup_project
 from leanup.cli.elan_ops import (
@@ -42,6 +43,7 @@ def status():
 
 
 cli.add_command(setup_project)
+cli.add_command(mathlib)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))

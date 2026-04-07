@@ -6,24 +6,13 @@ from pathlib import Path
 import re
 import shutil
 
-from leanup.const import LEANUP_CACHE_DIR
 from leanup.repo.elan import ElanManager
+from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version, remove_path
 from leanup.repo.manager import LeanRepo
 from leanup.utils.basic import working_directory
 from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("project_setup")
-
-LEAN_VERSION_PATTERN = re.compile(r"^v?4\.\d+\.\d+$")
-
-
-def normalize_lean_version(version: str) -> str:
-    normalized = version.strip()
-    if not LEAN_VERSION_PATTERN.match(normalized):
-        raise ValueError("Lean version must look like v4.x.x or 4.x.x.")
-    if not normalized.startswith("v"):
-        normalized = f"v{normalized}"
-    return normalized
 
 
 def sanitize_project_name(name: str) -> str:
@@ -33,15 +22,6 @@ def sanitize_project_name(name: str) -> str:
     if sanitized[0].isdigit():
         sanitized = f"Lean{sanitized}"
     return sanitized
-
-
-def remove_path(path: Path) -> None:
-    if not path.exists() and not path.is_symlink():
-        return
-    if path.is_symlink() or path.is_file():
-        path.unlink()
-        return
-    shutil.rmtree(path)
 
 
 @dataclass
@@ -77,7 +57,7 @@ class SetupConfig:
 
     @property
     def mathlib_cache_dir(self) -> Path:
-        return LEANUP_CACHE_DIR / "setup" / "mathlib" / self.lean_version / "packages"
+        return MathlibCacheManager().get_local_packages_dir(self.lean_version)
 
     def validate(self) -> None:
         if self.resolved_dependency_mode not in {"symlink", "build"}:
@@ -99,6 +79,7 @@ class SetupResult:
 class LeanProjectSetup:
     def __init__(self, elan_manager: ElanManager | None = None):
         self.elan_manager = elan_manager or ElanManager()
+        self.cache_manager = MathlibCacheManager()
 
     def setup(self, config: SetupConfig) -> SetupResult:
         config.validate()
@@ -173,11 +154,11 @@ class LeanProjectSetup:
             raise RuntimeError(stderr or stdout or "lake build failed.")
 
     def _link_mathlib_cache(self, config: SetupConfig, project_dir: Path) -> None:
-        cache_dir = config.mathlib_cache_dir
-        if not cache_dir.exists():
+        cache_dir = self.cache_manager.ensure_local_cache(config.lean_version)
+        if not cache_dir:
             raise ValueError(
                 "No cached mathlib packages found for this Lean version. "
-                "Run setup with --dependency-mode build first."
+                "Import one with `leanup mathlib cache import <version>` or run setup with --dependency-mode build first."
             )
 
         packages_dir = project_dir / ".lake" / "packages"
@@ -195,7 +176,7 @@ class LeanProjectSetup:
             logger.warning("Skipping cache refresh because .lake/packages does not exist.")
             return
 
-        cache_dir = config.mathlib_cache_dir
+        cache_dir = self.cache_manager.get_local_packages_dir(config.lean_version)
         cache_parent = cache_dir.parent
         cache_parent.mkdir(parents=True, exist_ok=True)
 

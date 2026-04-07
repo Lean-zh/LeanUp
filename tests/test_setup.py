@@ -105,19 +105,20 @@ def test_setup_interactive_uses_previewed_dependency_mode(monkeypatch, tmp_path)
 
 
 def test_setup_config_prefers_symlink_when_cache_exists(tmp_path):
-    from leanup.repo import project_setup as project_setup_module
+    from leanup.repo.mathlib_cache import MathlibCacheManager
+    from leanup.repo import mathlib_cache as cache_module
 
-    original_cache_dir = project_setup_module.LEANUP_CACHE_DIR
-    project_setup_module.LEANUP_CACHE_DIR = tmp_path / "cache"
+    original_cache_dir = cache_module.LEANUP_CACHE_DIR
+    cache_module.LEANUP_CACHE_DIR = tmp_path / "cache"
 
     try:
         config = SetupConfig(target_dir=tmp_path / "Demo", lean_version="v4.27.0")
         assert config.resolved_dependency_mode == "build"
 
-        config.mathlib_cache_dir.mkdir(parents=True, exist_ok=True)
+        MathlibCacheManager().get_local_packages_dir("v4.27.0").mkdir(parents=True, exist_ok=True)
         assert config.resolved_dependency_mode == "symlink"
     finally:
-        project_setup_module.LEANUP_CACHE_DIR = original_cache_dir
+        cache_module.LEANUP_CACHE_DIR = original_cache_dir
 
 
 def test_setup_build_mode_populates_shared_cache(tmp_path):
@@ -149,10 +150,10 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         build_dir.mkdir(parents=True, exist_ok=True)
         return "", "", 0
 
-    from leanup.repo import project_setup as project_setup_module
+    from leanup.repo import mathlib_cache as cache_module
 
-    original_cache_dir = project_setup_module.LEANUP_CACHE_DIR
-    project_setup_module.LEANUP_CACHE_DIR = tmp_path / "cache"
+    original_cache_dir = cache_module.LEANUP_CACHE_DIR
+    cache_module.LEANUP_CACHE_DIR = tmp_path / "cache"
 
     try:
         from leanup.repo.manager import LeanRepo
@@ -179,7 +180,7 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         assert config.mathlib_cache_dir.exists()
         assert (config.mathlib_cache_dir / "mathlib" / "README.md").exists()
     finally:
-        project_setup_module.LEANUP_CACHE_DIR = original_cache_dir
+        cache_module.LEANUP_CACHE_DIR = original_cache_dir
         LeanRepo.lake_init = original_lake_init
         LeanRepo.lake_update = original_lake_update
         LeanRepo.lake_build = original_lake_build
@@ -211,10 +212,10 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
     def fake_lake_build(self):
         return "", "", 0
 
-    from leanup.repo import project_setup as project_setup_module
+    from leanup.repo import mathlib_cache as cache_module
 
-    original_cache_dir = project_setup_module.LEANUP_CACHE_DIR
-    project_setup_module.LEANUP_CACHE_DIR = tmp_path / "cache"
+    original_cache_dir = cache_module.LEANUP_CACHE_DIR
+    cache_module.LEANUP_CACHE_DIR = tmp_path / "cache"
 
     try:
         from leanup.repo.manager import LeanRepo
@@ -226,7 +227,7 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_update = fake_lake_update
         LeanRepo.lake_build = fake_lake_build
 
-        cached_packages = project_setup_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.27.0" / "packages" / "mathlib"
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.27.0" / "packages" / "mathlib"
         cached_packages.mkdir(parents=True, exist_ok=True)
         (cached_packages / "README.md").write_text("cached\n", encoding="utf-8")
 
@@ -242,7 +243,7 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         assert packages_link.resolve() == config.mathlib_cache_dir
         assert (packages_link / "mathlib" / "README.md").read_text(encoding="utf-8").strip() == "cached"
     finally:
-        project_setup_module.LEANUP_CACHE_DIR = original_cache_dir
+        cache_module.LEANUP_CACHE_DIR = original_cache_dir
         LeanRepo.lake_init = original_lake_init
         LeanRepo.lake_update = original_lake_update
         LeanRepo.lake_build = original_lake_build
