@@ -156,14 +156,22 @@ class ElanManager:
             return False
 
     def install_lean(self, version: str = None) -> bool:
+        requested = version or "stable"
         installed = self.get_installed_toolchains()
-        if version in installed:
-            logger.info(f"Lean toolchain {version} is already installed")
+        if self._is_toolchain_installed(requested, installed):
+            logger.info(f"Lean toolchain {requested} is already installed")
             return True
-        version = version or "stable"
-        cmd = ["toolchain", "install", version]
+        cmd = ["toolchain", "install", requested]
         result = self.proxy_elan_command(cmd)
         return result == 0
+
+    def _is_toolchain_installed(self, requested: str, installed: List[str]) -> bool:
+        candidates = {requested}
+        if requested.startswith("v"):
+            candidates.add(f"leanprover/lean4:{requested}")
+        elif requested.startswith("leanprover/lean4:"):
+            candidates.add(requested.split(":", 1)[1])
+        return any(toolchain in candidates for toolchain in installed)
 
     def proxy_elan_command(self, args: List[str]) -> int:
         """Proxy execute elan command with streaming output"""

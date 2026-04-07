@@ -14,38 +14,37 @@ pip install -e .
 
 ## 基础使用
 
-### 初始化 elan
+### 查看帮助
 
 ```bash
-# 查看帮助
 leanup --help
-
-# 安装 elan
-leanup init
-
-# 查看当前状态
-leanup status
 ```
 
-### 安装 Lean 工具链
+### 快速创建项目
 
 ```bash
-# 安装最新稳定版 Lean 工具链
-leanup install
+# 创建一个带 mathlib 的 Lean 项目，默认有缓存就复用，没有缓存就构建
+leanup setup ./Demo --lean-version v4.27.0
 
-# 安装特定版本的 Lean 工具链
-leanup install v4.14.0
+# 首次为某个版本准备缓存时，从头构建依赖
+leanup setup ./DemoBuild --lean-version v4.27.0 --dependency-mode build
+
+# 后续项目直接复用共享依赖缓存
+leanup setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
+
+# 创建不依赖 mathlib 的纯 Lean 项目
+leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 ```
 
-### 管理工具链
+说明：
 
-```bash
-# 代理执行 elan 命令
-leanup elan --help
-leanup elan toolchain list
-leanup elan toolchain install stable
-leanup elan default stable
-```
+- 共享缓存默认放在 `LEANUP_CACHE_DIR/setup/mathlib/<version>/packages`
+- Linux 默认通常对应 `~/.cache/leanup/setup/mathlib/<version>/packages`
+- `symlink` 模式只对 `mathlib` 项目开放
+- 默认行为是：有缓存就复用，没有缓存就自动构建并刷新缓存
+- 显式指定 `--dependency-mode symlink` 时，如果当前版本还没有缓存，会直接报错
+- `setup` 会自动确保 `elan` 和目标 Lean toolchain 已安装
+- 如果你需要直接透传给 `elan`，仍然可以使用 `leanup elan ...`
 
 ### 仓库管理
 

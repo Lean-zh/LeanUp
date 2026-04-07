@@ -103,6 +103,27 @@ class TestElanManager:
             
             assert result is True
             assert target_path.exists()
+
+    def test_install_lean_skips_when_version_already_installed(self, mock_elan_home):
+        with patch.dict(os.environ, {'ELAN_HOME': str(mock_elan_home)}):
+            manager = ElanManager()
+
+            with patch.object(
+                manager,
+                'get_installed_toolchains',
+                return_value=['leanprover/lean4:v4.22.0', 'stable'],
+            ), patch.object(manager, 'proxy_elan_command') as mock_proxy:
+                assert manager.install_lean('v4.22.0') is True
+                mock_proxy.assert_not_called()
+
+    def test_install_lean_installs_when_version_missing(self, mock_elan_home):
+        with patch.dict(os.environ, {'ELAN_HOME': str(mock_elan_home)}):
+            manager = ElanManager()
+
+            with patch.object(manager, 'get_installed_toolchains', return_value=[]), \
+                 patch.object(manager, 'proxy_elan_command', return_value=0) as mock_proxy:
+                assert manager.install_lean('v4.22.0') is True
+                mock_proxy.assert_called_once_with(['toolchain', 'install', 'v4.22.0'])
     
     @patch('subprocess.run')
     @pytest.mark.skipif(OS_TYPE == 'Windows', reason="Windows path separator issue")

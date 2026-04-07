@@ -4,10 +4,7 @@
 
 ## 功能特性
 
-- `leanup init`：安装并初始化 elan
-- `leanup install [version]`：通过 elan 安装 Lean 工具链
-- `leanup status`：查看当前 elan / toolchain 状态
-- `leanup elan <args>`：透明代理 elan 命令
+- `leanup setup`：快速创建固定 Lean 版本项目，支持 mathlib 共享缓存
 - `leanup repo install`：安装 Lean 仓库，支持命令优先、交互补参
 - `leanup repo list`：查看已安装仓库
 

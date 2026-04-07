@@ -21,6 +21,7 @@
 ## 🎯 功能特性
 
 - **📦 仓库管理**: 安装和管理 Lean 仓库，支持命令优先、交互兜底的配置流程
+- **⚡ 项目初始化**: 快速创建固定 Lean 版本的项目，并复用同版本 mathlib 缓存
 - **🌍 跨平台支持**: 支持 Linux、macOS 和 Windows
 - **📦 简单易用**: 通过 `pip install leanup` 快速安装
 - **🔄 命令代理**: 透明代理所有 elan 命令，无缝体验
@@ -45,47 +46,14 @@ pip install -e .
 # 查看帮助
 leanup --help
 
-# 安装 elan 并初始化配置
-leanup init
+# 快速初始化一个 Lean + mathlib 项目
+leanup setup ./Demo --lean-version v4.27.0
 
-# 安装 
-leanup install # stable
-
-# 查看状态
-leanup status
-
-# 代理执行 elan 命令
-leanup elan --help
+# 如需手动透传 elan，也可以继续使用
 leanup elan toolchain list
-leanup elan toolchain install stable
-leanup elan default stable
 ```
 
 ## 📖 详细使用指南
-
-### 管理 Lean 工具链
-
-安装 elan 后，您可以使用 `leanup elan` 命令来管理 Lean 工具链：
-
-```bash
-# 列出所有可用的工具链
-leanup elan toolchain list
-
-# 安装稳定版工具链
-leanup elan toolchain install stable
-
-# 安装夜间构建版本
-leanup elan toolchain install leanprover/lean4:nightly
-
-# 设置默认工具链
-leanup elan default stable
-
-# 更新所有工具链
-leanup elan update
-
-# 查看当前活动的工具链
-leanup elan show
-```
 
 ### 仓库管理
 
@@ -120,6 +88,35 @@ leanup repo list --search-dir /path/to/repos
 # 按名称过滤仓库
 leanup repo list -n mathlib
 ```
+
+### 快速初始化项目
+
+`leanup setup` 用于快速创建一个固定 Lean 版本的项目，并按需要为 `mathlib` 依赖准备共享缓存。
+
+```bash
+# 创建一个带 mathlib 的项目，默认有缓存就复用，没有缓存就构建
+leanup setup ./Demo --lean-version v4.27.0
+
+# 首次为某个版本准备依赖缓存时，从头构建一次
+leanup setup ./DemoBuild --lean-version v4.27.0 --dependency-mode build
+
+# 后续同版本项目可直接软链接复用缓存
+leanup setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
+
+# 创建不带 mathlib 的纯 Lean 项目
+leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
+
+# 指定 Lake 项目名，并覆盖已存在目录
+leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
+```
+
+规则说明：
+
+- `--dependency-mode symlink` 只在启用 `mathlib` 时可用
+- 默认缓存目录为 `LEANUP_CACHE_DIR/setup/mathlib/<version>/packages`
+- 默认行为是：有缓存就复用，没有缓存就自动构建并刷新缓存
+- 显式指定 `--dependency-mode symlink` 时，如果当前版本还没有缓存，会直接报错
+- `setup` 会确保对应 Lean toolchain 已通过 `elan` 安装
 
 ### 交互式安装
 
