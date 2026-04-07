@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-import os
 import re
 import shutil
 import tarfile
@@ -37,15 +36,10 @@ def remove_path(path: Path) -> None:
 class CacheEntry:
     version: str
     local_path: Path
-    archive_path: Path | None
 
     @property
     def local_available(self) -> bool:
         return self.local_path.exists()
-
-    @property
-    def importable(self) -> bool:
-        return self.archive_path is not None and self.archive_path.exists()
 
 
 class MathlibCacheManager:
@@ -55,44 +49,10 @@ class MathlibCacheManager:
     def get_local_packages_dir(self, version: str) -> Path:
         return self.cache_root / normalize_lean_version(version) / "packages"
 
-    def discover_reference_cache_dir(self) -> Path | None:
-        explicit = os.getenv("LEANUP_MATHLIB_CACHE_SOURCE")
-        candidates = []
-        if explicit:
-            candidates.append(Path(explicit).expanduser())
-
-        here = Path(__file__).resolve()
-        for parent in [Path.cwd().resolve(), *Path.cwd().resolve().parents, *here.parents]:
-            candidates.append(parent / "reference" / "Projects" / "cache")
-
-        seen = set()
-        for candidate in candidates:
-            resolved = str(candidate)
-            if resolved in seen:
-                continue
-            seen.add(resolved)
-            if candidate.exists() and candidate.is_dir():
-                return candidate
-        return None
-
-    def get_reference_archive(self, version: str, source_dir: Path | None = None) -> Path | None:
-        normalized = normalize_lean_version(version)
-        source_root = source_dir or self.discover_reference_cache_dir()
-        if not source_root:
-            return None
-        archive = source_root / normalized / "packages.tar.gz"
-        return archive if archive.exists() else None
-
-    def list_entries(self, source_dir: Path | None = None) -> list[CacheEntry]:
+    def list_entries(self) -> list[CacheEntry]:
         versions = set()
         if self.cache_root.exists():
             for child in self.cache_root.iterdir():
-                if child.is_dir() and LEAN_VERSION_PATTERN.match(child.name):
-                    versions.add(normalize_lean_version(child.name))
-
-        reference_root = source_dir or self.discover_reference_cache_dir()
-        if reference_root and reference_root.exists():
-            for child in reference_root.iterdir():
                 if child.is_dir() and LEAN_VERSION_PATTERN.match(child.name):
                     versions.add(normalize_lean_version(child.name))
 
@@ -100,54 +60,43 @@ class MathlibCacheManager:
             CacheEntry(
                 version=version,
                 local_path=self.get_local_packages_dir(version),
-                archive_path=self.get_reference_archive(version, source_dir=source_dir),
             )
             for version in sorted(versions)
         ]
 
-    def ensure_local_cache(self, version: str, source_dir: Path | None = None) -> Path | None:
+    def ensure_local_cache(self, version: str) -> Path | None:
         local_path = self.get_local_packages_dir(version)
         if local_path.exists():
             return local_path
-        archive = self.get_reference_archive(version, source_dir=source_dir)
-        if not archive:
-            return None
-        self.import_archive(version, archive)
-        return local_path
+        return None
 
-    def import_archive(
-        self,
-        version: str,
-        archive_path: Path | None = None,
-        source_dir: Path | None = None,
-        force: bool = False,
-    ) -> Path:
+    def refresh_local_cache(self, version: str, source_dir: Path, force: bool = True) -> Path:
         normalized = normalize_lean_version(version)
-        archive = archive_path or self.get_reference_archive(normalized, source_dir=source_dir)
-        if not archive:
-            raise ValueError(f"No reference cache archive found for {normalized}.")
-
         version_root = self.cache_root / normalized
         packages_dir = version_root / "packages"
-        if packages_dir.exists():
-            if not force:
-                return packages_dir
-            remove_path(packages_dir)
+        if packages_dir.exists() and not force:
+            return packages_dir
 
         version_root.mkdir(parents=True, exist_ok=True)
-        temp_root = version_root / ".importing"
+        temp_root = version_root / ".packages.tmp"
         remove_path(temp_root)
-        temp_root.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source_dir, temp_root, symlinks=True)
 
-        try:
-            with tarfile.open(archive, "r:gz") as tar:
-                tar.extractall(path=temp_root, filter="data")
-            extracted_packages = temp_root / "packages"
-            if not extracted_packages.exists():
-                raise ValueError(f"Archive {archive} does not contain a packages directory.")
-            remove_path(packages_dir)
-            os.replace(extracted_packages, packages_dir)
-            logger.info(f"Imported mathlib cache {normalized} from {archive}")
-            return packages_dir
-        finally:
-            remove_path(temp_root)
+        remove_path(packages_dir)
+        temp_root.replace(packages_dir)
+        logger.info(f"Refreshed mathlib cache {normalized} from {source_dir}")
+        return packages_dir
+
+    def pack_packages_archive(self, packages_dir: Path, output_file: Path) -> Path:
+        if not packages_dir.exists() or not packages_dir.is_dir():
+            raise ValueError(f"Packages directory not found: {packages_dir}")
+
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        if output_file.exists():
+            output_file.unlink()
+
+        with tarfile.open(output_file, "w:gz", dereference=False) as tar:
+            tar.add(packages_dir, arcname="packages", recursive=True)
+
+        logger.info(f"Packed {packages_dir} -> {output_file}")
+        return output_file

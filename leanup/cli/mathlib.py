@@ -18,83 +18,47 @@ def cache() -> None:
 
 
 @cache.command(name="list")
-@click.option(
-    "--local-only",
-    is_flag=True,
-    help="Show only caches already imported into LeanUp's cache directory.",
-)
-@click.option(
-    "--importable-only",
-    is_flag=True,
-    help="Show only versions that can be imported from the reference cache source.",
-)
-@click.option(
-    "--source-dir",
-    type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    help="Override the reference cache directory to scan for packages.tar.gz archives.",
-)
-def list_cache(local_only: bool, importable_only: bool, source_dir: Path | None) -> None:
+def list_cache() -> None:
     """List available mathlib caches."""
     manager = MathlibCacheManager()
-    entries = manager.list_entries(source_dir=source_dir)
+    entries = manager.list_entries()
 
-    filtered = []
-    for entry in entries:
-        if local_only and not entry.local_available:
-            continue
-        if importable_only and not entry.importable:
-            continue
-        filtered.append(entry)
-
-    if not filtered:
+    if not entries:
         click.echo("No mathlib caches found.")
         return
 
-    for entry in filtered:
-        status = []
-        if entry.local_available:
-            status.append("local")
-        if entry.importable:
-            status.append("importable")
-        click.echo(f"{entry.version}\t{', '.join(status) or 'unavailable'}")
-        click.echo(f"  local: {entry.local_path}")
-        if entry.archive_path:
-            click.echo(f"  archive: {entry.archive_path}")
+    for entry in entries:
+        click.echo(entry.version)
 
 
-@cache.command(name="import")
-@click.argument("version", required=False)
-@click.option("--all", "import_all", is_flag=True, help="Import all importable cache archives.")
-@click.option("--force", is_flag=True, help="Replace an existing imported cache.")
+@cache.command(name="pack")
 @click.option(
-    "--source-dir",
+    "--repo-dir",
     type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    help="Override the reference cache directory containing versioned packages.tar.gz archives.",
+    default=Path.cwd,
+    help="Lean repository directory containing .lake/packages.",
 )
-def import_cache(
-    version: str | None,
-    import_all: bool,
-    force: bool,
-    source_dir: Path | None,
-) -> None:
-    """Import mathlib package caches into LeanUp's default cache directory."""
-    if import_all and version:
-        raise click.ClickException("Use either VERSION or --all, not both.")
-    if not import_all and not version:
-        raise click.ClickException("Missing VERSION. Use `leanup mathlib cache import <version>` or --all.")
-
+@click.option(
+    "--output-dir",
+    type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
+    required=True,
+    help="Directory where <version>/packages.tar.gz will be written.",
+)
+@click.option(
+    "--lean-version",
+    required=True,
+    help="Lean version like v4.22.0.",
+)
+def pack_cache(repo_dir: Path, output_dir: Path, lean_version: str) -> None:
+    """Pack current repository .lake/packages into a versioned cache archive."""
     manager = MathlibCacheManager()
-    targets = []
-    if import_all:
-        targets = [entry.version for entry in manager.list_entries(source_dir=source_dir) if entry.importable]
-        if not targets:
-            raise click.ClickException("No importable mathlib caches found.")
-    else:
-        targets = [normalize_lean_version(version)]
+    version = normalize_lean_version(lean_version)
+    packages_dir = repo_dir / ".lake" / "packages"
+    archive = output_dir / version / "packages.tar.gz"
 
-    for target in targets:
-        try:
-            packages_dir = manager.import_archive(target, source_dir=source_dir, force=force)
-        except ValueError as exc:
-            raise click.ClickException(str(exc)) from exc
-        click.echo(f"Imported {target} -> {packages_dir}")
+    try:
+        packed = manager.pack_packages_archive(packages_dir, archive)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(str(packed))

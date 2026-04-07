@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -57,7 +58,7 @@ def test_setup_command_uses_expected_defaults(monkeypatch, tmp_path):
     assert captured["target_dir"] == target.resolve()
     assert captured["lean_version"] == "v4.27.0"
     assert captured["mathlib"] is True
-    assert captured["dependency_mode"] == "build"
+    assert captured["dependency_mode"] == "symlink"
 
 
 def test_setup_interactive_uses_previewed_dependency_mode(monkeypatch, tmp_path):
@@ -91,7 +92,7 @@ def test_setup_interactive_uses_previewed_dependency_mode(monkeypatch, tmp_path)
         str(tmp_path / "Demo"),
         "v4.27.0",
         "Demo",
-        "build",
+        "symlink",
     ])
     confirmations = iter([True, False])
     monkeypatch.setattr(setup_cli_module, "ask_text", lambda message, default="": next(values))
@@ -101,7 +102,7 @@ def test_setup_interactive_uses_previewed_dependency_mode(monkeypatch, tmp_path)
     result = runner.invoke(cli, ["setup"])
 
     assert result.exit_code == 0
-    assert captured["dependency_mode"] == "build"
+    assert captured["dependency_mode"] == "symlink"
 
 
 def test_setup_config_prefers_symlink_when_cache_exists(tmp_path):
@@ -113,7 +114,7 @@ def test_setup_config_prefers_symlink_when_cache_exists(tmp_path):
 
     try:
         config = SetupConfig(target_dir=tmp_path / "Demo", lean_version="v4.27.0")
-        assert config.resolved_dependency_mode == "build"
+        assert config.resolved_dependency_mode == "symlink"
 
         MathlibCacheManager().get_local_packages_dir("v4.27.0").mkdir(parents=True, exist_ok=True)
         assert config.resolved_dependency_mode == "symlink"
@@ -150,6 +151,18 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         build_dir.mkdir(parents=True, exist_ok=True)
         return "", "", 0
 
+    def fake_lake_env_lean(self, filepath, json=True, options=None, nproc=None):
+        assert Path(filepath).suffix == ".lean"
+        return "4.27.0\n", "", 0
+
+    def fake_lake(self, args):
+        if args == ["exe", "cache", "get"]:
+            packages_dir = self.cwd / ".lake" / "packages" / "mathlib"
+            packages_dir.mkdir(parents=True, exist_ok=True)
+            (packages_dir / "README.md").write_text("cached from cache get\n", encoding="utf-8")
+            return "", "", 0
+        raise AssertionError(f"unexpected lake args: {args}")
+
     from leanup.repo import mathlib_cache as cache_module
 
     original_cache_dir = cache_module.LEANUP_CACHE_DIR
@@ -161,9 +174,13 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         original_lake_init = LeanRepo.lake_init
         original_lake_update = LeanRepo.lake_update
         original_lake_build = LeanRepo.lake_build
+        original_lake_env_lean = LeanRepo.lake_env_lean
+        original_lake = LeanRepo.lake
         LeanRepo.lake_init = fake_lake_init
         LeanRepo.lake_update = fake_lake_update
         LeanRepo.lake_build = fake_lake_build
+        LeanRepo.lake_env_lean = fake_lake_env_lean
+        LeanRepo.lake = fake_lake
 
         manager = LeanProjectSetup(elan_manager=FakeElanManager())
         target = tmp_path / "BuildDemo"
@@ -177,6 +194,9 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
 
         assert result.used_cache is False
         assert (target / "lean-toolchain").read_text(encoding="utf-8").strip() == "leanprover/lean4:v4.27.0"
+        assert (target / "lakefile.lean").read_text(encoding="utf-8").find('require mathlib from git') >= 0
+        assert (target / "BuildDemo.lean").exists()
+        assert (target / "BuildDemo" / "Basic.lean").exists()
         assert config.mathlib_cache_dir.exists()
         assert (config.mathlib_cache_dir / "mathlib" / "README.md").exists()
     finally:
@@ -184,6 +204,8 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         LeanRepo.lake_init = original_lake_init
         LeanRepo.lake_update = original_lake_update
         LeanRepo.lake_build = original_lake_build
+        LeanRepo.lake_env_lean = original_lake_env_lean
+        LeanRepo.lake = original_lake
 
 
 def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
@@ -212,6 +234,13 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
     def fake_lake_build(self):
         return "", "", 0
 
+    def fake_lake_env_lean(self, filepath, json=True, options=None, nproc=None):
+        assert Path(filepath).suffix == ".lean"
+        return "4.27.0\n", "", 0
+
+    def fake_lake(self, args):
+        raise AssertionError(f"unexpected lake args: {args}")
+
     from leanup.repo import mathlib_cache as cache_module
 
     original_cache_dir = cache_module.LEANUP_CACHE_DIR
@@ -223,9 +252,13 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         original_lake_init = LeanRepo.lake_init
         original_lake_update = LeanRepo.lake_update
         original_lake_build = LeanRepo.lake_build
+        original_lake_env_lean = LeanRepo.lake_env_lean
+        original_lake = LeanRepo.lake
         LeanRepo.lake_init = fake_lake_init
         LeanRepo.lake_update = fake_lake_update
         LeanRepo.lake_build = fake_lake_build
+        LeanRepo.lake_env_lean = fake_lake_env_lean
+        LeanRepo.lake = fake_lake
 
         cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.27.0" / "packages" / "mathlib"
         cached_packages.mkdir(parents=True, exist_ok=True)
@@ -247,3 +280,147 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_init = original_lake_init
         LeanRepo.lake_update = original_lake_update
         LeanRepo.lake_build = original_lake_build
+        LeanRepo.lake_env_lean = original_lake_env_lean
+        LeanRepo.lake = original_lake
+
+
+def test_setup_symlink_mode_skips_lake_update_when_manifest_exists(tmp_path):
+    class FakeElanManager:
+        def is_elan_installed(self):
+            return True
+
+        def install_elan(self):
+            return True
+
+        def install_lean(self, version):
+            return True
+
+    calls = {"lake_update": 0, "lake_build": 0}
+
+    def fake_lake_update(self):
+        calls["lake_update"] += 1
+        return "", "", 0
+
+    def fake_lake_build(self):
+        calls["lake_build"] += 1
+        return "", "", 0
+
+    def fake_lake_env_lean(self, filepath, json=True, options=None, nproc=None):
+        assert Path(filepath).suffix == ".lean"
+        return "4.22.0\n", "", 0
+
+    from leanup.repo import mathlib_cache as cache_module
+    from leanup.repo.manager import LeanRepo
+
+    original_cache_dir = cache_module.LEANUP_CACHE_DIR
+    cache_module.LEANUP_CACHE_DIR = tmp_path / "cache"
+    original_lake_update = LeanRepo.lake_update
+    original_lake_build = LeanRepo.lake_build
+    original_lake_env_lean = LeanRepo.lake_env_lean
+
+    try:
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib"
+        cached_packages.mkdir(parents=True, exist_ok=True)
+        (cached_packages / "README.md").write_text("cached\n", encoding="utf-8")
+
+        LeanRepo.lake_update = fake_lake_update
+        LeanRepo.lake_build = fake_lake_build
+        LeanRepo.lake_env_lean = fake_lake_env_lean
+
+        manager = LeanProjectSetup(elan_manager=FakeElanManager())
+        target = tmp_path / "FastDemo"
+        config = SetupConfig(target_dir=target, lean_version="v4.22.0", dependency_mode="symlink")
+
+        manager.setup(config)
+
+        assert calls["lake_update"] == 0
+        assert calls["lake_build"] == 1
+        assert (target / "lake-manifest.json").exists()
+        assert '"name": "FastDemo"' in (target / "lake-manifest.json").read_text(encoding="utf-8")
+    finally:
+        cache_module.LEANUP_CACHE_DIR = original_cache_dir
+        LeanRepo.lake_update = original_lake_update
+        LeanRepo.lake_build = original_lake_build
+        LeanRepo.lake_env_lean = original_lake_env_lean
+
+
+def test_setup_uses_bundled_manifest_without_external_reference(tmp_path):
+    class FakeElanManager:
+        def is_elan_installed(self):
+            return True
+
+        def install_elan(self):
+            return True
+
+        def install_lean(self, version):
+            return True
+
+    calls = {"lake_update": 0, "lake_build": 0}
+
+    def fake_lake_update(self):
+        calls["lake_update"] += 1
+        return "", "", 0
+
+    def fake_lake_build(self):
+        calls["lake_build"] += 1
+        return "", "", 0
+
+    def fake_lake_env_lean(self, filepath, json=True, options=None, nproc=None):
+        assert Path(filepath).suffix == ".lean"
+        return "4.22.0\n", "", 0
+
+    def fake_lake(self, args):
+        if args == ["exe", "cache", "get"]:
+            packages_dir = self.cwd / ".lake" / "packages" / "mathlib"
+            packages_dir.mkdir(parents=True, exist_ok=True)
+            (packages_dir / "README.md").write_text("cached from cache get\n", encoding="utf-8")
+            return "", "", 0
+        raise AssertionError(f"unexpected lake args: {args}")
+
+    from leanup.repo import mathlib_cache as cache_module
+    from leanup.repo.manager import LeanRepo
+
+    original_cache_dir = cache_module.LEANUP_CACHE_DIR
+    cache_module.LEANUP_CACHE_DIR = tmp_path / "cache"
+    original_lake_update = LeanRepo.lake_update
+    original_lake_build = LeanRepo.lake_build
+    original_lake_env_lean = LeanRepo.lake_env_lean
+    original_lake = LeanRepo.lake
+
+    try:
+        LeanRepo.lake_update = fake_lake_update
+        LeanRepo.lake_build = fake_lake_build
+        LeanRepo.lake_env_lean = fake_lake_env_lean
+        LeanRepo.lake = fake_lake
+
+        manager = LeanProjectSetup(elan_manager=FakeElanManager())
+        target = tmp_path / "BundledDemo"
+        config = SetupConfig(target_dir=target, lean_version="v4.22.0", dependency_mode="symlink")
+
+        manager.setup(config)
+
+        assert calls["lake_update"] == 1
+        assert calls["lake_build"] == 1
+        assert (target / "lake-manifest.json").exists()
+        assert '"inputRev": "v4.22.0"' in (target / "lake-manifest.json").read_text(encoding="utf-8")
+        assert '"name": "BundledDemo"' in (target / "lake-manifest.json").read_text(encoding="utf-8")
+        assert (cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages").exists()
+        assert (
+            cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib" / "README.md"
+        ).read_text(encoding="utf-8").strip() == "cached from cache get"
+    finally:
+        cache_module.LEANUP_CACHE_DIR = original_cache_dir
+        LeanRepo.lake_update = original_lake_update
+        LeanRepo.lake_build = original_lake_build
+        LeanRepo.lake_env_lean = original_lake_env_lean
+        LeanRepo.lake = original_lake
+
+
+def test_bundled_manifest_versions_cover_supported_range_subset():
+    from pathlib import Path
+
+    manifest_root = Path(__file__).resolve().parents[1] / "leanup" / "templates" / "mathlib" / "manifests"
+    bundled_versions = sorted(path.name for path in manifest_root.iterdir() if path.is_dir())
+
+    for version in ["v4.14.0", "v4.17.0", "v4.19.0", "v4.21.0", "v4.22.0"]:
+        assert version in bundled_versions
