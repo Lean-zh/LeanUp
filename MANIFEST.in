@@ -1,0 +1,1 @@
+recursive-include leanup/templates *.tmpl
