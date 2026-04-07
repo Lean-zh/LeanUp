@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import shutil
 import tempfile
+from urllib.parse import urlparse
 
 from leanup.repo.elan import ElanManager
 from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version, remove_path
@@ -14,8 +15,7 @@ from leanup.utils.basic import working_directory
 from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("project_setup")
-TEMPLATE_ROOT = Path(__file__).resolve().parent.parent / "templates" / "mathlib" / "v4.xx.0"
-BUNDLED_MANIFEST_ROOT = Path(__file__).resolve().parent.parent / "templates" / "mathlib" / "manifests"
+TEMPLATE_ROOT = Path(__file__).resolve().parent.parent / "templates" / "mathlib"
 
 
 def sanitize_project_name(name: str) -> str:
@@ -86,31 +86,43 @@ class LeanProjectSetup:
 
     def setup(self, config: SetupConfig) -> SetupResult:
         config.validate()
+        logger.info(f"Preparing Lean project at {config.target_dir}")
         self._ensure_target_available(config)
         self._ensure_toolchain(config.lean_version)
 
         with working_directory() as temp_dir:
             project_dir = temp_dir / config.project_name
+            logger.info(f"Generating project skeleton for {config.project_name}")
             self._create_project_skeleton(config, project_dir)
             project = LeanRepo(project_dir)
             self._write_toolchain(project_dir, config.toolchain)
-            self._copy_reference_manifest(config, project_dir)
 
             used_cache = False
             cache_dir = config.mathlib_cache_dir if config.mathlib else None
 
             if config.mathlib and config.resolved_dependency_mode == "symlink":
+                logger.info("Checking reusable mathlib package cache")
                 used_cache = self._prepare_mathlib_cache(config, project_dir)
+                if used_cache:
+                    self._write_manifest_from_packages(config, project_dir)
 
             if config.mathlib and self._should_run_lake_update(config, project_dir):
+                logger.info("Running lake update")
                 self._run_lake_update(project)
+                logger.info("Running lake exe cache get")
                 self._run_lake_cache_get(project)
+                logger.info("Refreshing shared packages cache")
                 self._refresh_mathlib_cache(config, project_dir)
+                logger.info("Generating manifest from resolved packages")
+                self._write_manifest_from_packages(config, project_dir)
                 if config.resolved_dependency_mode == "symlink":
+                    logger.info("Linking shared packages cache into project")
                     self._link_mathlib_cache(config, project_dir)
                     used_cache = True
 
+            logger.info("Running lake build")
             self._run_lake_build(project)
+            logger.info("Verifying project with Mathlib.Init and Lean.versionString")
             self._verify_mathlib_project(project_dir)
 
             shutil.move(str(project_dir), str(config.target_dir))
@@ -134,6 +146,7 @@ class LeanProjectSetup:
         target.parent.mkdir(parents=True, exist_ok=True)
 
     def _ensure_toolchain(self, version: str) -> None:
+        logger.info(f"Ensuring Lean toolchain {version} is installed")
         if not self.elan_manager.is_elan_installed() and not self.elan_manager.install_elan():
             raise RuntimeError("Failed to install elan.")
         if not self.elan_manager.install_lean(version):
@@ -166,25 +179,105 @@ class LeanProjectSetup:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(content.format(**context), encoding="utf-8")
 
-    def _bundled_manifest_path(self, version: str) -> Path | None:
-        candidate = BUNDLED_MANIFEST_ROOT / normalize_lean_version(version) / "lake-manifest.json"
-        if candidate.exists():
-            return candidate
-        return None
-
-    def _copy_reference_manifest(self, config: SetupConfig, project_dir: Path) -> None:
-        if not config.mathlib:
+    def _write_manifest_from_packages(self, config: SetupConfig, project_dir: Path) -> None:
+        packages_dir = project_dir / ".lake" / "packages"
+        if not packages_dir.exists():
             return
-        bundled_manifest = self._bundled_manifest_path(config.lean_version)
-        if bundled_manifest:
-            manifest_path = project_dir / "lake-manifest.json"
-            shutil.copy2(bundled_manifest, manifest_path)
-            self._rewrite_manifest_name(manifest_path, config.project_name)
+        if not self._can_generate_manifest_from_packages(packages_dir):
+            logger.info("Skipping manifest generation from packages because git metadata is incomplete")
+            return
 
-    def _rewrite_manifest_name(self, manifest_path: Path, project_name: str) -> None:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["name"] = project_name
+        mathlib_manifest = self._read_mathlib_embedded_manifest(packages_dir)
+        packages = []
+        for package_dir in sorted(path for path in packages_dir.iterdir() if path.is_dir()):
+            packages.append(
+                self._build_manifest_entry(
+                    package_dir=package_dir,
+                    lean_version=config.lean_version,
+                    mathlib_manifest=mathlib_manifest,
+                )
+            )
+
+        manifest = {
+            "version": "1.1.0",
+            "packagesDir": ".lake/packages",
+            "packages": packages,
+            "name": config.project_name,
+            "lakeDir": ".lake",
+        }
+        manifest_path = project_dir / "lake-manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
+
+    def _can_generate_manifest_from_packages(self, packages_dir: Path) -> bool:
+        package_dirs = [path for path in packages_dir.iterdir() if path.is_dir()]
+        if not package_dirs:
+            return False
+        for package_dir in package_dirs:
+            if not (package_dir / ".git").exists():
+                return False
+        return True
+
+    def _read_mathlib_embedded_manifest(self, packages_dir: Path) -> dict[str, dict]:
+        mathlib_manifest_path = packages_dir / "mathlib" / "lake-manifest.json"
+        if not mathlib_manifest_path.exists():
+            return {}
+        manifest = json.loads(mathlib_manifest_path.read_text(encoding="utf-8"))
+        return {entry["name"]: entry for entry in manifest.get("packages", [])}
+
+    def _build_manifest_entry(
+        self,
+        package_dir: Path,
+        lean_version: str,
+        mathlib_manifest: dict[str, dict],
+    ) -> dict:
+        package_name = package_dir.name
+        url = self._read_git_origin_url(package_dir)
+        head_rev = self._read_git_head(package_dir)
+        config_file = self._detect_config_file(package_dir)
+        inherited = package_name != "mathlib"
+        input_rev = lean_version if package_name == "mathlib" else mathlib_manifest.get(package_name, {}).get("inputRev", "main")
+
+        return {
+            "url": url,
+            "type": "git",
+            "subDir": None,
+            "scope": self._infer_scope(url),
+            "rev": head_rev,
+            "name": package_name,
+            "manifestFile": "lake-manifest.json",
+            "inputRev": input_rev,
+            "inherited": inherited,
+            "configFile": config_file,
+        }
+
+    def _read_git_origin_url(self, package_dir: Path) -> str:
+        from git import Repo
+
+        repo = Repo(package_dir)
+        return next(repo.remote("origin").urls)
+
+    def _read_git_head(self, package_dir: Path) -> str:
+        from git import Repo
+
+        repo = Repo(package_dir)
+        return repo.head.commit.hexsha
+
+    def _detect_config_file(self, package_dir: Path) -> str:
+        if (package_dir / "lakefile.lean").exists():
+            return "lakefile.lean"
+        if (package_dir / "lakefile.toml").exists():
+            return "lakefile.toml"
+        raise RuntimeError(f"No Lake config file found in package: {package_dir}")
+
+    def _infer_scope(self, url: str) -> str:
+        parsed = urlparse(url)
+        path = parsed.path.rstrip("/")
+        if path.endswith(".git"):
+            path = path[:-4]
+        parts = [part for part in path.split("/") if part]
+        if len(parts) >= 2:
+            return parts[-2]
+        return ""
 
     def _should_run_lake_update(self, config: SetupConfig, project_dir: Path) -> bool:
         if not config.mathlib:

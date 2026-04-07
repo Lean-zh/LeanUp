@@ -6,6 +6,7 @@
 
 - `leanup setup`：快速创建固定 Lean 版本项目，支持 mathlib 共享缓存
 - `leanup mathlib cache list`：查看本地 mathlib 共享缓存版本
+- `leanup mathlib cache pack`：将当前仓库的 `.lake/packages` 打包为共享缓存归档
 - `leanup repo install`：安装 Lean 仓库，支持命令优先、交互补参
 - `leanup repo list`：查看已安装仓库
 

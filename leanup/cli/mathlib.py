@@ -49,7 +49,12 @@ def list_cache() -> None:
     required=True,
     help="Lean version like v4.22.0.",
 )
-def pack_cache(repo_dir: Path, output_dir: Path, lean_version: str) -> None:
+@click.option(
+    "--pigz/--no-pigz",
+    default=False,
+    help="Use pigz for parallel compression when it is available.",
+)
+def pack_cache(repo_dir: Path, output_dir: Path, lean_version: str, pigz: bool) -> None:
     """Pack current repository .lake/packages into a versioned cache archive."""
     manager = MathlibCacheManager()
     version = normalize_lean_version(lean_version)
@@ -57,7 +62,7 @@ def pack_cache(repo_dir: Path, output_dir: Path, lean_version: str) -> None:
     archive = output_dir / version / "packages.tar.gz"
 
     try:
-        packed = manager.pack_packages_archive(packages_dir, archive)
+        packed = manager.pack_packages_archive(packages_dir, archive, use_pigz=pigz)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
 

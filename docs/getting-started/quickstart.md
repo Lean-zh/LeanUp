@@ -54,7 +54,13 @@ leanup mathlib cache list
 # 进入当前仓库后，打包本仓库的 .lake/packages 到指定目录
 cd /path/to/repo
 leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache
+
+# 如果本机安装了 pigz，也可以显式启用并发压缩
+leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache --pigz
 ```
+
+- `--pigz` 会在本机存在 `pigz` 时启用并发压缩
+- 如果系统里没有 `pigz`，命令会自动回退到普通 gzip 打包
 
 ### 仓库管理
 

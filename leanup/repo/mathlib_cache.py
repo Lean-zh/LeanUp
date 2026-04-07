@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import tarfile
+import tempfile
 
 from leanup.const import LEANUP_CACHE_DIR
 from leanup.utils.custom_logger import setup_logger
@@ -87,16 +89,34 @@ class MathlibCacheManager:
         logger.info(f"Refreshed mathlib cache {normalized} from {source_dir}")
         return packages_dir
 
-    def pack_packages_archive(self, packages_dir: Path, output_file: Path) -> Path:
+    def pack_packages_archive(self, packages_dir: Path, output_file: Path, use_pigz: bool = False) -> Path:
         if not packages_dir.exists() or not packages_dir.is_dir():
             raise ValueError(f"Packages directory not found: {packages_dir}")
+
+        source_dir = packages_dir.resolve() if packages_dir.is_symlink() else packages_dir
 
         output_file.parent.mkdir(parents=True, exist_ok=True)
         if output_file.exists():
             output_file.unlink()
 
-        with tarfile.open(output_file, "w:gz", dereference=False) as tar:
-            tar.add(packages_dir, arcname="packages", recursive=True)
+        if use_pigz and shutil.which("pigz"):
+            self._pack_with_pigz(source_dir, output_file)
+        else:
+            with tarfile.open(output_file, "w:gz", dereference=False) as tar:
+                tar.add(source_dir, arcname="packages", recursive=True)
 
-        logger.info(f"Packed {packages_dir} -> {output_file}")
+        logger.info(f"Packed {source_dir} -> {output_file}")
         return output_file
+
+    def _pack_with_pigz(self, source_dir: Path, output_file: Path) -> None:
+        with tempfile.NamedTemporaryFile(suffix=".tar", delete=False) as handle:
+            temp_tar = Path(handle.name)
+
+        try:
+            with tarfile.open(temp_tar, "w", dereference=False) as tar:
+                tar.add(source_dir, arcname="packages", recursive=True)
+
+            with output_file.open("wb") as output_handle:
+                subprocess.run(["pigz", "-c", str(temp_tar)], check=True, stdout=output_handle)
+        finally:
+            temp_tar.unlink(missing_ok=True)

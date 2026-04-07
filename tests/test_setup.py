@@ -2,9 +2,24 @@ import os
 from pathlib import Path
 
 from click.testing import CliRunner
+from git import Repo
 
 from leanup.cli import cli
 from leanup.repo.project_setup import LeanProjectSetup, SetupConfig
+
+
+def _init_fake_package_repo(package_dir: Path, package_name: str = "mathlib") -> None:
+    package_dir.mkdir(parents=True, exist_ok=True)
+    (package_dir / "README.md").write_text("cached\n", encoding="utf-8")
+    (package_dir / "lakefile.lean").write_text(f"package {package_name} where\n", encoding="utf-8")
+    repo = Repo.init(package_dir)
+    with repo.config_writer() as config:
+        config.set_value("user", "name", "LeanUp Test")
+        config.set_value("user", "email", "leanup@example.com")
+    if "origin" not in [remote.name for remote in repo.remotes]:
+        repo.create_remote("origin", f"https://github.com/leanprover-community/{package_name}.git")
+    repo.index.add(["README.md", "lakefile.lean"])
+    repo.index.commit("init")
 
 
 def test_setup_command_rejects_symlink_without_mathlib():
@@ -105,6 +120,45 @@ def test_setup_interactive_uses_previewed_dependency_mode(monkeypatch, tmp_path)
     assert captured["dependency_mode"] == "symlink"
 
 
+def test_setup_interactive_rejects_blank_project_directory(monkeypatch):
+    import importlib
+
+    setup_cli_module = importlib.import_module("leanup.cli.setup")
+    runner = CliRunner()
+
+    monkeypatch.setattr(
+        setup_cli_module,
+        "resolve_interactive_mode",
+        lambda interactive, auto_prompt_condition: (None, True, False, True, True),
+    )
+    monkeypatch.setattr(setup_cli_module, "ask_text", lambda message, default="": "   ")
+
+    result = runner.invoke(cli, ["setup"])
+
+    assert result.exit_code != 0
+    assert "Project directory is required." in result.output
+
+
+def test_setup_interactive_rejects_blank_lean_version(monkeypatch, tmp_path):
+    import importlib
+
+    setup_cli_module = importlib.import_module("leanup.cli.setup")
+    runner = CliRunner()
+    values = iter([str(tmp_path / "Demo"), "   "])
+
+    monkeypatch.setattr(
+        setup_cli_module,
+        "resolve_interactive_mode",
+        lambda interactive, auto_prompt_condition: (None, True, False, True, True),
+    )
+    monkeypatch.setattr(setup_cli_module, "ask_text", lambda message, default="": next(values))
+
+    result = runner.invoke(cli, ["setup"])
+
+    assert result.exit_code != 0
+    assert "Lean version is required." in result.output
+
+
 def test_setup_config_prefers_symlink_when_cache_exists(tmp_path):
     from leanup.repo.mathlib_cache import MathlibCacheManager
     from leanup.repo import mathlib_cache as cache_module
@@ -158,8 +212,11 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
     def fake_lake(self, args):
         if args == ["exe", "cache", "get"]:
             packages_dir = self.cwd / ".lake" / "packages" / "mathlib"
-            packages_dir.mkdir(parents=True, exist_ok=True)
+            _init_fake_package_repo(packages_dir)
             (packages_dir / "README.md").write_text("cached from cache get\n", encoding="utf-8")
+            repo = Repo(packages_dir)
+            repo.index.add(["README.md", "lakefile.lean"])
+            repo.index.commit("update readme")
             return "", "", 0
         raise AssertionError(f"unexpected lake args: {args}")
 
@@ -225,7 +282,10 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         (project_dir / "lakefile.lean").write_text(f"template={template}\n", encoding="utf-8")
         return "", "", 0
 
+    calls = {"lake_update": 0, "cache_get": 0}
+
     def fake_lake_update(self):
+        calls["lake_update"] += 1
         packages_dir = self.cwd / ".lake" / "packages"
         packages_dir.mkdir(parents=True, exist_ok=True)
         (self.cwd / "lake-manifest.json").write_text("{}\n", encoding="utf-8")
@@ -239,6 +299,12 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         return "4.27.0\n", "", 0
 
     def fake_lake(self, args):
+        if args == ["exe", "cache", "get"]:
+            calls["cache_get"] += 1
+            packages_dir = self.cwd / ".lake" / "packages" / "mathlib"
+            packages_dir.mkdir(parents=True, exist_ok=True)
+            (packages_dir / "README.md").write_text("cached\n", encoding="utf-8")
+            return "", "", 0
         raise AssertionError(f"unexpected lake args: {args}")
 
     from leanup.repo import mathlib_cache as cache_module
@@ -261,8 +327,7 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake = fake_lake
 
         cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.27.0" / "packages" / "mathlib"
-        cached_packages.mkdir(parents=True, exist_ok=True)
-        (cached_packages / "README.md").write_text("cached\n", encoding="utf-8")
+        _init_fake_package_repo(cached_packages)
 
         manager = LeanProjectSetup(elan_manager=FakeElanManager())
         target = tmp_path / "SymlinkDemo"
@@ -275,6 +340,9 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         assert packages_link.is_symlink()
         assert packages_link.resolve() == config.mathlib_cache_dir
         assert (packages_link / "mathlib" / "README.md").read_text(encoding="utf-8").strip() == "cached"
+        assert (target / "lake-manifest.json").exists()
+        assert calls["lake_update"] == 0
+        assert calls["cache_get"] == 0
     finally:
         cache_module.LEANUP_CACHE_DIR = original_cache_dir
         LeanRepo.lake_init = original_lake_init
@@ -320,8 +388,7 @@ def test_setup_symlink_mode_skips_lake_update_when_manifest_exists(tmp_path):
 
     try:
         cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib"
-        cached_packages.mkdir(parents=True, exist_ok=True)
-        (cached_packages / "README.md").write_text("cached\n", encoding="utf-8")
+        _init_fake_package_repo(cached_packages)
 
         LeanRepo.lake_update = fake_lake_update
         LeanRepo.lake_build = fake_lake_build
@@ -372,8 +439,11 @@ def test_setup_uses_bundled_manifest_without_external_reference(tmp_path):
     def fake_lake(self, args):
         if args == ["exe", "cache", "get"]:
             packages_dir = self.cwd / ".lake" / "packages" / "mathlib"
-            packages_dir.mkdir(parents=True, exist_ok=True)
+            _init_fake_package_repo(packages_dir)
             (packages_dir / "README.md").write_text("cached from cache get\n", encoding="utf-8")
+            repo = Repo(packages_dir)
+            repo.index.add(["README.md", "lakefile.lean"])
+            repo.index.commit("update readme")
             return "", "", 0
         raise AssertionError(f"unexpected lake args: {args}")
 
@@ -402,8 +472,10 @@ def test_setup_uses_bundled_manifest_without_external_reference(tmp_path):
         assert calls["lake_update"] == 1
         assert calls["lake_build"] == 1
         assert (target / "lake-manifest.json").exists()
-        assert '"inputRev": "v4.22.0"' in (target / "lake-manifest.json").read_text(encoding="utf-8")
-        assert '"name": "BundledDemo"' in (target / "lake-manifest.json").read_text(encoding="utf-8")
+        manifest_text = (target / "lake-manifest.json").read_text(encoding="utf-8")
+        assert '"inputRev": "v4.22.0"' in manifest_text
+        assert '"name": "BundledDemo"' in manifest_text
+        assert '"rev": "' in manifest_text
         assert (cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages").exists()
         assert (
             cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib" / "README.md"
@@ -414,13 +486,3 @@ def test_setup_uses_bundled_manifest_without_external_reference(tmp_path):
         LeanRepo.lake_build = original_lake_build
         LeanRepo.lake_env_lean = original_lake_env_lean
         LeanRepo.lake = original_lake
-
-
-def test_bundled_manifest_versions_cover_supported_range_subset():
-    from pathlib import Path
-
-    manifest_root = Path(__file__).resolve().parents[1] / "leanup" / "templates" / "mathlib" / "manifests"
-    bundled_versions = sorted(path.name for path in manifest_root.iterdir() if path.is_dir())
-
-    for version in ["v4.14.0", "v4.17.0", "v4.19.0", "v4.21.0", "v4.22.0"]:
-        assert version in bundled_versions

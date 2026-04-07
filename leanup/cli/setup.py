@@ -14,6 +14,13 @@ from leanup.cli.interaction import (
 from leanup.repo.project_setup import LeanProjectSetup, SetupConfig
 
 
+def _require_non_empty(value: str, field_name: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise click.ClickException(f"{field_name} is required.")
+    return cleaned
+
+
 @click.command(name="setup")
 @click.argument("path", required=False, type=click.Path(path_type=Path))
 @click.option(
@@ -73,9 +80,15 @@ def setup_project(
         raise click.ClickException("Missing required setup path or Lean version.")
 
     if need_prompt:
-        path_input = ask_text("Project directory", default=str(path) if path else "")
+        path_input = _require_non_empty(
+            ask_text("Project directory", default=str(path) if path else ""),
+            "Project directory",
+        )
         path = Path(path_input)
-        lean_version = ask_text("Lean version", default=lean_version or "")
+        lean_version = _require_non_empty(
+            ask_text("Lean version", default=lean_version or ""),
+            "Lean version",
+        )
         name = ask_text("Lake project name", default=name or path.name) or None
         mathlib = ask_confirm("Enable mathlib dependency?", default=mathlib)
 
