@@ -51,7 +51,7 @@ class SetupConfig:
         if self.dependency_mode:
             return self.dependency_mode
         if not self.mathlib:
-            return "build"
+            return "copy"
         return "symlink"
 
     @property
@@ -63,8 +63,8 @@ class SetupConfig:
         return MathlibCacheManager().get_local_packages_dir(self.lean_version)
 
     def validate(self) -> None:
-        if self.resolved_dependency_mode not in {"symlink", "build"}:
-            raise ValueError("Dependency mode must be either 'symlink' or 'build'.")
+        if self.resolved_dependency_mode not in {"symlink", "copy"}:
+            raise ValueError("Dependency mode must be either 'symlink' or 'copy'.")
         if self.resolved_dependency_mode == "symlink" and not self.mathlib:
             raise ValueError("Dependency symlink mode is only available when mathlib is enabled.")
 
@@ -100,7 +100,7 @@ class LeanProjectSetup:
             used_cache = False
             cache_dir = config.mathlib_cache_dir if config.mathlib else None
 
-            if config.mathlib and config.resolved_dependency_mode == "symlink":
+            if config.mathlib and config.resolved_dependency_mode in {"symlink", "copy"}:
                 logger.info("Checking reusable mathlib package cache")
                 used_cache = self._prepare_mathlib_cache(config, project_dir)
                 if used_cache:
@@ -119,6 +119,9 @@ class LeanProjectSetup:
                     logger.info("Linking shared packages cache into project")
                     self._link_mathlib_cache(config, project_dir)
                     used_cache = True
+                elif config.resolved_dependency_mode == "copy":
+                    logger.info("Copying shared packages cache into project")
+                    self._copy_mathlib_cache(config, project_dir)
 
             logger.info("Running lake build")
             self._run_lake_build(project)
@@ -322,7 +325,10 @@ class LeanProjectSetup:
         if not cache_dir:
             return False
 
-        self._link_mathlib_cache(config, project_dir)
+        if config.resolved_dependency_mode == "symlink":
+            self._link_mathlib_cache(config, project_dir)
+        elif config.resolved_dependency_mode == "copy":
+            self._copy_mathlib_cache(config, project_dir)
         return True
 
     def _link_mathlib_cache(self, config: SetupConfig, project_dir: Path) -> None:
@@ -336,6 +342,13 @@ class LeanProjectSetup:
             packages_dir.symlink_to(cache_dir, target_is_directory=True)
         except OSError as exc:
             raise RuntimeError(f"Failed to create dependency symlink: {exc}") from exc
+
+    def _copy_mathlib_cache(self, config: SetupConfig, project_dir: Path) -> None:
+        cache_dir = self.cache_manager.get_local_packages_dir(config.lean_version)
+        packages_dir = project_dir / ".lake" / "packages"
+        packages_dir.parent.mkdir(parents=True, exist_ok=True)
+        remove_path(packages_dir)
+        shutil.copytree(cache_dir, packages_dir, symlinks=True)
 
     def _refresh_mathlib_cache(self, config: SetupConfig, project_dir: Path) -> None:
         source_dir = project_dir / ".lake" / "packages"

@@ -176,7 +176,7 @@ def test_setup_config_prefers_symlink_when_cache_exists(tmp_path):
         cache_module.LEANUP_CACHE_DIR = original_cache_dir
 
 
-def test_setup_build_mode_populates_shared_cache(tmp_path):
+def test_setup_copy_mode_populates_shared_cache(tmp_path):
     class FakeElanManager:
         def is_elan_installed(self):
             return True
@@ -244,7 +244,7 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         config = SetupConfig(
             target_dir=target,
             lean_version="v4.27.0",
-            dependency_mode="build",
+            dependency_mode="copy",
         )
 
         result = manager.setup(config)
@@ -254,6 +254,8 @@ def test_setup_build_mode_populates_shared_cache(tmp_path):
         assert (target / "lakefile.lean").read_text(encoding="utf-8").find('require mathlib from git') >= 0
         assert (target / "BuildDemo.lean").exists()
         assert (target / "BuildDemo" / "Basic.lean").exists()
+        assert (target / ".lake" / "packages").exists()
+        assert not (target / ".lake" / "packages").is_symlink()
         assert config.mathlib_cache_dir.exists()
         assert (config.mathlib_cache_dir / "mathlib" / "README.md").exists()
     finally:
@@ -350,6 +352,66 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_build = original_lake_build
         LeanRepo.lake_env_lean = original_lake_env_lean
         LeanRepo.lake = original_lake
+
+
+def test_setup_copy_mode_reuses_shared_cache(tmp_path):
+    class FakeElanManager:
+        def is_elan_installed(self):
+            return True
+
+        def install_elan(self):
+            return True
+
+        def install_lean(self, version):
+            return True
+
+    def fake_lake_init(self, name, template=None):
+        project_dir = self.cwd / name
+        project_dir.mkdir(parents=True)
+        (project_dir / "lakefile.lean").write_text(f"template={template}\n", encoding="utf-8")
+        return "", "", 0
+
+    def fake_lake_build(self):
+        return "", "", 0
+
+    def fake_lake_env_lean(self, filepath, json=True, options=None, nproc=None):
+        assert Path(filepath).suffix == ".lean"
+        return "4.22.0\n", "", 0
+
+    from leanup.repo import mathlib_cache as cache_module
+
+    original_cache_dir = cache_module.LEANUP_CACHE_DIR
+    cache_module.LEANUP_CACHE_DIR = tmp_path / "cache"
+
+    try:
+        from leanup.repo.manager import LeanRepo
+
+        original_lake_init = LeanRepo.lake_init
+        original_lake_build = LeanRepo.lake_build
+        original_lake_env_lean = LeanRepo.lake_env_lean
+        LeanRepo.lake_init = fake_lake_init
+        LeanRepo.lake_build = fake_lake_build
+        LeanRepo.lake_env_lean = fake_lake_env_lean
+
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib"
+        _init_fake_package_repo(cached_packages)
+
+        manager = LeanProjectSetup(elan_manager=FakeElanManager())
+        target = tmp_path / "CopyDemo"
+        config = SetupConfig(target_dir=target, lean_version="v4.22.0", dependency_mode="copy")
+
+        result = manager.setup(config)
+
+        packages_dir = target / ".lake" / "packages"
+        assert result.used_cache is True
+        assert packages_dir.exists()
+        assert not packages_dir.is_symlink()
+        assert (packages_dir / "mathlib" / "README.md").exists()
+    finally:
+        cache_module.LEANUP_CACHE_DIR = original_cache_dir
+        LeanRepo.lake_init = original_lake_init
+        LeanRepo.lake_build = original_lake_build
+        LeanRepo.lake_env_lean = original_lake_env_lean
 
 
 def test_setup_symlink_mode_skips_lake_update_when_manifest_exists(tmp_path):

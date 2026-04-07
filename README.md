@@ -94,11 +94,11 @@ leanup repo list -n mathlib
 `leanup setup` 用于快速创建一个固定 Lean 版本的项目，并按需要为 `mathlib` 依赖准备共享缓存。
 
 ```bash
-# 创建一个带 mathlib 的项目，默认有缓存就复用，没有缓存就构建
+# 创建一个带 mathlib 的项目，默认有缓存就复用，没有缓存就自动准备缓存
 leanup setup ./Demo --lean-version v4.27.0
 
-# 首次为某个版本准备依赖缓存时，从头构建一次
-leanup setup ./DemoBuild --lean-version v4.27.0 --dependency-mode build
+# 使用 copy 模式，把共享缓存复制到项目里
+leanup setup ./DemoCopy --lean-version v4.27.0 --dependency-mode copy
 
 # 后续同版本项目可直接软链接复用缓存
 leanup setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
@@ -112,9 +112,10 @@ leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 
 规则说明：
 
-- `--dependency-mode symlink` 只在启用 `mathlib` 时可用
+- `--dependency-mode` 支持 `symlink` 和 `copy`
 - 默认缓存目录为 `LEANUP_CACHE_DIR/setup/mathlib/<version>/packages`
-- 默认行为偏向缓存复用：如果已有 `packages` 缓存就直接链接，否则执行 `lake update`、`lake exe cache get`，再把 `.lake/packages` 写回缓存
+- 如果已有 `packages` 缓存，则按 `symlink` 或 `copy` 的方式放进项目
+- 如果缓存不存在，则会自动执行 `lake update`、`lake exe cache get`，再把 `.lake/packages` 写回缓存
 - `setup` 会确保对应 Lean toolchain 已通过 `elan` 安装
 
 ### 管理 mathlib 缓存
