@@ -760,11 +760,11 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>leanup<span class="w"> </span>--help
 </code></pre></div>
 <h3 id="_5">快速创建项目</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 创建一个带 mathlib 的 Lean 项目，默认有缓存就复用，没有缓存就构建</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 创建一个带 mathlib 的 Lean 项目，默认有缓存就复用，没有缓存就自动准备缓存</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./Demo<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 首次为某个版本准备缓存时，从头构建依赖</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./DemoBuild<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>build
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 使用 copy 模式，把共享缓存复制到项目里</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./DemoCopy<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>copy
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># 后续项目直接复用共享依赖缓存</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./DemoFast<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>symlink
@@ -776,8 +776,9 @@
 <ul>
 <li>共享缓存默认放在 <code>LEANUP_CACHE_DIR/setup/mathlib/&lt;version&gt;/packages</code></li>
 <li>Linux 默认通常对应 <code>~/.cache/leanup/setup/mathlib/&lt;version&gt;/packages</code></li>
-<li><code>symlink</code> 模式只对 <code>mathlib</code> 项目开放</li>
-<li>默认行为偏向缓存复用：如果已有 <code>packages</code> 缓存就直接链接，否则执行 <code>lake update</code>、<code>lake exe cache get</code>，再把 <code>.lake/packages</code> 写回缓存</li>
+<li><code>--dependency-mode</code> 支持 <code>symlink</code> 和 <code>copy</code></li>
+<li>如果已有 <code>packages</code> 缓存，则按 <code>symlink</code> 或 <code>copy</code> 的方式放进项目</li>
+<li>如果缓存不存在，则会自动执行 <code>lake update</code>、<code>lake exe cache get</code>，再把 <code>.lake/packages</code> 写回缓存</li>
 <li><code>setup</code> 会自动确保 <code>elan</code> 和目标 Lean toolchain 已安装</li>
 <li>如果你需要直接透传给 <code>elan</code>，仍然可以使用 <code>leanup elan ...</code></li>
 </ul>
