@@ -1,92 +1,108 @@
-# Quick Start
+# 快速开始
 
-## Installation
+## 安装
 
 ```bash
-# Install from PyPI
+# 从 PyPI 安装
 pip install leanup
 
-# Or clone the repository and install
+# 或者克隆仓库后安装
 git clone https://github.com/Lean-zh/LeanUp.git
 cd LeanUp
 pip install -e .
 ```
 
-## Basic Usage
+## 基础使用
 
-### Initialize elan
+### 查看帮助
 
 ```bash
-# View help
 leanup --help
-
-# Install elan
-leanup init
-
-# View current status
-leanup status
 ```
 
-### Install Lean Toolchain
+### 快速创建项目
 
 ```bash
-# Install latest stable Lean toolchain
-leanup install
+# 创建一个带 mathlib 的 Lean 项目，默认有缓存就复用，没有缓存就构建
+leanup setup ./Demo --lean-version v4.27.0
 
-# Install specific Lean toolchain version
-leanup install v4.14.0
+# 首次为某个版本准备缓存时，从头构建依赖
+leanup setup ./DemoBuild --lean-version v4.27.0 --dependency-mode build
+
+# 后续项目直接复用共享依赖缓存
+leanup setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
+
+# 创建不依赖 mathlib 的纯 Lean 项目
+leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 ```
 
-### Manage Toolchains
+说明：
+
+- 共享缓存默认放在 `LEANUP_CACHE_DIR/setup/mathlib/<version>/packages`
+- Linux 默认通常对应 `~/.cache/leanup/setup/mathlib/<version>/packages`
+- `symlink` 模式只对 `mathlib` 项目开放
+- 默认行为偏向缓存复用：如果已有 `packages` 缓存就直接链接，否则执行 `lake update`、`lake exe cache get`，再把 `.lake/packages` 写回缓存
+- `setup` 会自动确保 `elan` 和目标 Lean toolchain 已安装
+- 如果你需要直接透传给 `elan`，仍然可以使用 `leanup elan ...`
+
+### 管理 mathlib 缓存
 
 ```bash
-# Proxy execute elan commands
-leanup elan --help
-leanup elan toolchain list
-leanup elan toolchain install stable
-leanup elan default stable
+# 查看 LeanUp 已有缓存版本
+leanup mathlib cache list
+
+# 进入当前仓库后，打包本仓库的 .lake/packages 到指定目录
+cd /path/to/repo
+leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache
+
+# 如需关闭并发压缩，可以显式禁用 pigz
+leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
-### Repository Management
+- 默认会在本机存在 `pigz` 时启用并发压缩
+- 如果系统里没有 `pigz`，命令会自动回退到普通 gzip 打包
+- `--no-pigz` 可显式关闭并发压缩
+
+### 仓库管理
 
 ```bash
-# Install Mathlib
+# 安装 Mathlib
 leanup repo install leanprover-community/mathlib4
 
-# Install specific branch or tag
+# 安装特定分支或标签
 leanup repo install leanprover-community/mathlib4 -b v4.14.0
 
-# Install to custom directory
+# 安装到自定义目录
 leanup repo install Lean-zh/leanup -d /path/to/custom/dir
 
-# Control build options
+# 控制构建选项
 leanup repo install leanprover-community/mathlib4 --lake-build
 
-# Interactive mode
+# 交互式
 leanup repo install leanprover-community/mathlib4 -i
 
-# Specify packages to build
+# 指定要构建的包
 leanup repo install Lean-zh/repl --build-packages "REPL,REPL.Main"
 
-# List installed repositories
+# 列出已安装的仓库
 leanup repo list
 
-# Search repositories in specified directory
+# 在指定目录中搜索仓库
 leanup repo list --search-dir /path/to/repos
 
-# Filter repositories by name
+# 按名称过滤仓库
 leanup repo list -n mathlib
 ```
 
-## Using InstallConfig
+## 使用 InstallConfig
 
-The `InstallConfig` class provides a programmatic way to configure repository installations:
+`InstallConfig` 类提供了编程方式配置仓库安装：
 
 ```python
 from pathlib import Path
 from leanup.repo.manager import InstallConfig
 
-# Create installation configuration
+# 创建安装配置
 config = InstallConfig(
     suffix="leanprover-community/mathlib4",
     source="https://github.com",
@@ -99,71 +115,71 @@ config = InstallConfig(
     override=False
 )
 
-# Check if configuration is valid
+# 检查配置是否有效
 if config.is_valid:
-    print(f"Will install to: {config.dest_path}")
+    print(f"将安装到: {config.dest_path}")
     
-# Execute installation
+# 执行安装
 config.install()
 
-# Update configuration
+# 更新配置
 new_config = config.update(branch="v4.3.0", override=True)
 ```
 
-## Using the RepoManager
+## 使用 RepoManager
 
-The `RepoManager` class provides functionality for managing directories and git repositories:
+`RepoManager` 类提供了管理目录和 git 仓库的功能：
 
 ```python
 from leanup.repo.manager import RepoManager
 
-# Create a repo manager
+# 创建仓库管理器
 repo = RepoManager("/path/to/your/directory")
 
-# Check if it's a git repository
+# 检查是否为 git 仓库
 if repo.is_gitrepo:
-    print("This is a git repository")
+    print("这是一个 git 仓库")
     status = repo.git_status()
-    print(f"Current branch: {status['branch']}")
-    print(f"Is dirty: {status['is_dirty']}")
+    print(f"当前分支: {status['branch']}")
+    print(f"是否有修改: {status['is_dirty']}")
 
-# Clone a repository
+# 克隆仓库
 success = repo.clone_from(
     "https://github.com/owner/repo.git", 
     branch="main", 
     depth=1
 )
 
-# File operations
+# 文件操作
 repo.write_file("test.txt", "Hello world")
 content = repo.read_file("test.txt")
 repo.edit_file("test.txt", "world", "universe", use_regex=False)
 
-# List files and directories
+# 列出文件和目录
 files = repo.list_files("*.lean")
 dirs = repo.list_dirs()
 
-# Execute commands
+# 执行命令
 stdout, stderr, returncode = repo.execute_command(["ls", "-la"])
 ```
 
-## Using LeanRepo for Lean Projects
+## 使用 LeanRepo 管理 Lean 项目
 
 ```python
 from leanup.repo.manager import LeanRepo
 
-# Create a Lean repo manager
+# 创建 Lean 仓库管理器
 lean_repo = LeanRepo("/path/to/lean/project")
 
-# Get project information
+# 获取项目信息
 info = lean_repo.get_project_info()
-print(f"Lean version: {info['lean_version']}")
-print(f"Has lakefile.toml: {info['has_lakefile_toml']}")
-print(f"Has lakefile.lean: {info['has_lakefile_lean']}")
-print(f"Has lake-manifest.json: {info['has_lake_manifest']}")
-print(f"Build directory exists: {info['build_dir_exists']}")
+print(f"Lean 版本: {info['lean_version']}")
+print(f"有 lakefile.toml: {info['has_lakefile_toml']}")
+print(f"有 lakefile.lean: {info['has_lakefile_lean']}")
+print(f"有 lake-manifest.json: {info['has_lake_manifest']}")
+print(f"构建目录存在: {info['build_dir_exists']}")
 
-# Lake operations
+# Lake 操作
 lean_repo.lake_init("my_project", "std", "lean")
 lean_repo.lake_update()
 lean_repo.lake_build("MyTarget")
@@ -171,7 +187,7 @@ lean_repo.lake_env_lean("Main.lean", json=True)
 lean_repo.lake_clean()
 lean_repo.lake_test()
 
-# Install using configuration
+# 使用配置安装
 config = InstallConfig(
     suffix="leanprover-community/mathlib4",
     lake_update=True,
