@@ -565,8 +565,11 @@
 <h2 id="_1">功能特性</h2>
 <ul>
 <li><code>leanup setup</code>：快速创建固定 Lean 版本项目，支持 mathlib 共享缓存</li>
-<li><code>leanup mathlib cache list</code>：查看本地 mathlib 共享缓存版本</li>
-<li><code>leanup mathlib cache pack</code>：将当前仓库的 <code>.lake/packages</code> 打包为共享缓存归档</li>
+<li><code>leanup cache list</code>：查看本地或远端 mathlib 共享缓存版本</li>
+<li><code>leanup cache create &lt;version&gt;</code>：在临时目录创建某个 Lean 版本的 mathlib packages 缓存</li>
+<li><code>leanup cache pack &lt;version&gt;</code>：将本地缓存里的 packages 目录打包为共享缓存归档</li>
+<li><code>leanup cache get &lt;version&gt;</code>：从 LeanUp cache 服务下载 <code>packages.tar.gz</code> 并解压到本地缓存</li>
+<li><code>leanup cache serve</code>：提供 <code>.ltar</code> 兼容路由和 LeanUp packages 归档下载服务</li>
 <li><code>leanup repo install</code>：安装 Lean 仓库，支持命令优先、交互补参</li>
 <li><code>leanup repo list</code>：查看已安装仓库</li>
 </ul>

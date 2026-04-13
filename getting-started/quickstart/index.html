@@ -774,29 +774,53 @@
 </code></pre></div>
 <p>说明：</p>
 <ul>
-<li>共享缓存默认放在 <code>LEANUP_CACHE_DIR/setup/mathlib/&lt;version&gt;/packages</code></li>
-<li>Linux 默认通常对应 <code>~/.cache/leanup/setup/mathlib/&lt;version&gt;/packages</code></li>
+<li>共享缓存默认放在 <code>LEANUP_CACHE_DIR/mathlib/packages/&lt;version&gt;/packages</code></li>
+<li>归档缓存默认放在 <code>LEANUP_CACHE_DIR/mathlib/archives/&lt;version&gt;/packages.tar.gz</code></li>
+<li>Linux 默认通常对应 <code>~/.cache/leanup/mathlib/packages/&lt;version&gt;/packages</code></li>
 <li><code>--dependency-mode</code> 支持 <code>symlink</code> 和 <code>copy</code></li>
 <li>如果已有 <code>packages</code> 缓存，则按 <code>symlink</code> 或 <code>copy</code> 的方式放进项目</li>
 <li>如果缓存不存在，则会自动执行 <code>lake update</code>、<code>lake exe cache get</code>，再把 <code>.lake/packages</code> 写回缓存</li>
 <li><code>setup</code> 会自动确保 <code>elan</code> 和目标 Lean toolchain 已安装</li>
-<li>如果你需要直接透传给 <code>elan</code>，仍然可以使用 <code>leanup elan ...</code></li>
 </ul>
 <h3 id="mathlib">管理 mathlib 缓存</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 查看 LeanUp 已有缓存版本</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>cache<span class="w"> </span>list
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>leanup<span class="w"> </span>cache<span class="w"> </span>list
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 进入当前仓库后，打包本仓库的 .lake/packages 到指定目录</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">cd</span><span class="w"> </span>/path/to/repo
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>--lean-version<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># 如需关闭并发压缩，可以显式禁用 pigz</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>--lean-version<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache<span class="w"> </span>--no-pigz
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 查看远端服务已有缓存版本和下载 URL</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>leanup<span class="w"> </span>cache<span class="w"> </span>list<span class="w"> </span>--base-url<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># 在 tempfile 临时工作目录中创建某个 Lean 版本的共享 mathlib packages 缓存</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>leanup<span class="w"> </span>cache<span class="w"> </span>create<span class="w"> </span>v4.22.0
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># 将本地缓存里的 packages/&lt;version&gt;/packages 打包成 archives/&lt;version&gt;/packages.tar.gz</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>leanup<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>v4.22.0
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># 或者使用指定缓存根</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>leanup<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># 启动缓存服务：/f/... 给 lake exe cache get，/packages/... 给 leanup cache get</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>leanup<span class="w"> </span>cache<span class="w"> </span>serve
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># 让 mathlib 官方 cache client 改走 LeanUp 服务</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="nb">export</span><span class="w"> </span><span class="nv">MATHLIB_CACHE_GET_URL</span><span class="o">=</span>http://127.0.0.1:8000
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>lake<span class="w"> </span>exe<span class="w"> </span>cache<span class="w"> </span>get
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="c1"># 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>leanup<span class="w"> </span>cache<span class="w"> </span>get<span class="w"> </span>v4.22.0<span class="w"> </span>--base-url<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># 如需关闭并发压缩，可以显式禁用 pigz</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>leanup<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache<span class="w"> </span>--no-pigz
 </code></pre></div>
 <ul>
 <li>默认会在本机存在 <code>pigz</code> 时启用并发压缩</li>
 <li>如果系统里没有 <code>pigz</code>，命令会自动回退到普通 gzip 打包</li>
 <li><code>--no-pigz</code> 可显式关闭并发压缩</li>
+<li><code>leanup cache create</code> 会在临时目录中执行 <code>lake update</code> 和 <code>lake exe cache get</code>，再把 <code>.lake/packages</code> 回填到 <code>mathlib/packages/&lt;version&gt;/packages</code> 并生成 <code>mathlib/archives/&lt;version&gt;/packages.tar.gz</code></li>
+<li><code>leanup cache serve</code> 的 <code>.ltar</code> 路由只做 mathlib 兼容分发；<code>packages.tar.gz</code> 是 LeanUp 自定义缓存格式</li>
+<li><code>leanup cache serve</code> 使用 FastAPI/uvicorn，并提供 <code>/packages/mathlib/index.json</code> 供其他机器列出远端可用版本</li>
+<li><code>leanup cache pack</code> 从 <code>mathlib/packages/&lt;version&gt;/packages</code> 生成 <code>mathlib/archives/&lt;version&gt;/packages.tar.gz</code></li>
+<li><code>leanup cache get</code> 从远端下载 <code>packages.tar.gz</code> 到 <code>mathlib/archives/&lt;version&gt;/packages.tar.gz</code>，并解压到 <code>mathlib/packages/&lt;version&gt;/packages</code></li>
+<li><code>leanup cache pack</code> 和 <code>leanup cache get</code> 都先写临时文件 / 临时目录，成功后再原子替换正式路径，避免中断损坏缓存</li>
 </ul>
 <h3 id="_6">仓库管理</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 安装 Mathlib</span>
