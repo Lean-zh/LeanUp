@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import tarfile
 import tempfile
+from urllib.parse import urljoin
+
+import requests
 
 from leanup.const import LEANUP_CACHE_DIR
 from leanup.utils.custom_logger import setup_logger
@@ -50,6 +54,9 @@ class MathlibCacheManager:
 
     def get_local_packages_dir(self, version: str) -> Path:
         return self.cache_root / normalize_lean_version(version) / "packages"
+
+    def get_local_archive_path(self, version: str) -> Path:
+        return self.cache_root / normalize_lean_version(version) / "packages.tar.gz"
 
     def list_entries(self) -> list[CacheEntry]:
         versions = set()
@@ -120,6 +127,74 @@ class MathlibCacheManager:
         logger.info(f"Packed {source_dir} -> {output_file}")
         return output_file
 
+    def build_archive_url(self, version: str, base_url: str) -> str:
+        normalized = normalize_lean_version(version)
+        return urljoin(base_url.rstrip("/") + "/", f"packages/mathlib/{normalized}/packages.tar.gz")
+
+    def download_archive(self, version: str, url: str) -> Path:
+        output_file = self.get_local_archive_path(version)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        with tempfile.NamedTemporaryFile(
+            dir=output_file.parent,
+            prefix=f".{output_file.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temp_output = Path(handle.name)
+
+        try:
+            with requests.get(url, stream=True, timeout=120) as response:
+                response.raise_for_status()
+                with temp_output.open("wb") as output_handle:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            output_handle.write(chunk)
+
+            remove_path(output_file)
+            temp_output.replace(output_file)
+            logger.info(f"Downloaded {url} -> {output_file}")
+            return output_file
+        except Exception:
+            remove_path(temp_output)
+            raise
+
+    def extract_archive(self, archive_file: Path, target_packages_dir: Path) -> Path:
+        if not archive_file.exists() or not archive_file.is_file():
+            raise ValueError(f"Archive not found: {archive_file}")
+
+        parent_dir = target_packages_dir.parent
+        parent_dir.mkdir(parents=True, exist_ok=True)
+        temp_root = Path(
+            tempfile.mkdtemp(prefix=f".{target_packages_dir.name}.", suffix=".tmp", dir=parent_dir)
+        )
+
+        try:
+            with tarfile.open(archive_file, "r:gz") as tar:
+                self._safe_extract(tar, temp_root)
+
+            extracted_packages_dir = temp_root / "packages"
+            if not extracted_packages_dir.exists() or not extracted_packages_dir.is_dir():
+                raise ValueError(f"Archive does not contain top-level packages/ directory: {archive_file}")
+
+            final_temp = parent_dir / f".{target_packages_dir.name}.replace-{os.getpid()}"
+            remove_path(final_temp)
+            extracted_packages_dir.replace(final_temp)
+
+            remove_path(target_packages_dir)
+            final_temp.replace(target_packages_dir)
+            remove_path(temp_root)
+
+            logger.info(f"Extracted {archive_file} -> {target_packages_dir}")
+            return target_packages_dir
+        except Exception:
+            remove_path(temp_root)
+            raise
+
+    def fetch_packages(self, version: str, base_url: str, target_dir: Path) -> Path:
+        archive = self.download_archive(version, self.build_archive_url(version, base_url))
+        return self.extract_archive(archive, target_dir / ".lake" / "packages")
+
     def _pack_with_pigz(self, source_dir: Path, output_file: Path) -> None:
         logger.info(f"Streaming tar archive from {source_dir.parent} into pigz")
         transform = f"s,^{re.escape(source_dir.name)},packages,"
@@ -145,3 +220,11 @@ class MathlibCacheManager:
                 tar_returncode = tar_proc.wait()
                 if tar_returncode != 0:
                     raise subprocess.CalledProcessError(tar_returncode, tar_proc.args)
+
+    def _safe_extract(self, tar: tarfile.TarFile, target_dir: Path) -> None:
+        target_dir = target_dir.resolve()
+        for member in tar.getmembers():
+            member_path = (target_dir / member.name).resolve()
+            if not str(member_path).startswith(str(target_dir)):
+                raise ValueError(f"Archive contains unsafe path: {member.name}")
+        tar.extractall(target_dir, filter="data")

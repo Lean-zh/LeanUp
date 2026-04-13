@@ -14,3 +14,12 @@ class TestCLI:
         result = self.runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
         assert "LeanUp - Lean project management tool" in result.output
+
+    def test_cache_help_lists_top_level_commands(self):
+        result = self.runner.invoke(cli, ["cache", "--help"])
+
+        assert result.exit_code == 0
+        assert "get" in result.output
+        assert "pack" in result.output
+        assert "serve" in result.output
+        assert "create" in result.output

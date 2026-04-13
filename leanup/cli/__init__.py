@@ -1,5 +1,6 @@
 import click
 
+from leanup.cli.cache_ops import create_cache, get_cache, pack_cache, serve_cache
 from leanup.cli.mathlib import mathlib
 from leanup.cli.repo import repo
 from leanup.cli.setup import setup_project
@@ -21,6 +22,10 @@ def cache() -> None:
     """Manage reusable caches."""
 
 
+cache.add_command(serve_cache)
+cache.add_command(pack_cache)
+cache.add_command(get_cache)
+cache.add_command(create_cache)
 cache.add_command(mathlib)
 
 

@@ -79,6 +79,13 @@ class SetupResult:
     used_cache: bool = False
 
 
+@dataclass
+class CacheCreateResult:
+    lean_version: str
+    cache_dir: Path
+    archive_path: Path
+
+
 class LeanProjectSetup:
     def __init__(self, elan_manager: ElanManager | None = None):
         self.elan_manager = elan_manager or ElanManager()
@@ -137,6 +144,44 @@ class LeanProjectSetup:
             dependency_mode=config.resolved_dependency_mode,
             cache_dir=cache_dir,
             used_cache=used_cache,
+        )
+
+    def create_mathlib_cache(self, lean_version: str, use_pigz: bool = True) -> CacheCreateResult:
+        normalized = normalize_lean_version(lean_version)
+        config = SetupConfig(
+            target_dir=Path.cwd() / f"MathlibCacheCreate-{normalized}",
+            lean_version=normalized,
+            project_name="MathlibCacheCreate",
+            mathlib=True,
+            dependency_mode="copy",
+        )
+
+        self._ensure_toolchain(config.lean_version)
+
+        with working_directory() as temp_dir:
+            project_dir = temp_dir / config.project_name
+            logger.info(f"Creating temporary mathlib cache project in {project_dir}")
+            self._render_mathlib_template(config, project_dir)
+            self._write_toolchain(project_dir, config.toolchain)
+
+            project = LeanRepo(project_dir)
+            logger.info("Running lake update for cache creation")
+            self._run_lake_update(project)
+            logger.info("Running lake exe cache get for cache creation")
+            self._run_lake_cache_get(project)
+
+            logger.info("Refreshing shared packages cache from temporary project")
+            self._refresh_mathlib_cache(config, project_dir)
+
+            packages_dir = self.cache_manager.get_local_packages_dir(config.lean_version)
+            archive_path = self.cache_manager.get_local_archive_path(config.lean_version)
+            logger.info("Packing packages archive from refreshed shared cache")
+            self.cache_manager.pack_packages_archive(packages_dir, archive_path, use_pigz=use_pigz)
+
+        return CacheCreateResult(
+            lean_version=config.lean_version,
+            cache_dir=self.cache_manager.get_local_packages_dir(config.lean_version),
+            archive_path=self.cache_manager.get_local_archive_path(config.lean_version),
         )
 
     def _ensure_target_available(self, config: SetupConfig) -> None:
