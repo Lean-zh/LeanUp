@@ -150,6 +150,35 @@ def test_mathlib_cache_pack_uses_pigz_by_default(monkeypatch, tmp_path):
     assert captured["use_pigz"] is True
 
 
+def test_mathlib_cache_list_prints_package_urls(monkeypatch, tmp_path):
+    runner = CliRunner()
+    cache_root = tmp_path / "cache"
+    (cache_root / "v4.22.0" / "packages").mkdir(parents=True)
+    (cache_root / "v4.27.0" / "packages").mkdir(parents=True)
+
+    original_init = MathlibCacheManager.__init__
+
+    def fake_cache_init(self, cache_root_arg=None):
+        original_init(self, cache_root=cache_root)
+
+    monkeypatch.setattr(MathlibCacheManager, "__init__", fake_cache_init)
+
+    result = runner.invoke(
+        cli,
+        [
+            "cache",
+            "mathlib",
+            "list",
+            "--base-url",
+            "http://127.0.0.1:8000/",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "v4.22.0 http://127.0.0.1:8000/packages/mathlib/v4.22.0/packages.tar.gz" in result.output
+    assert "v4.27.0 http://127.0.0.1:8000/packages/mathlib/v4.27.0/packages.tar.gz" in result.output
+
+
 def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
     runner = CliRunner()
     packages_root = tmp_path / "packages-cache"

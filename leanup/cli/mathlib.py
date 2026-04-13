@@ -13,7 +13,11 @@ def mathlib() -> None:
 
 
 @mathlib.command(name="list")
-def list_cache() -> None:
+@click.option(
+    "--base-url",
+    help="Print packages.tar.gz URLs using this base URL, for example http://127.0.0.1:8000.",
+)
+def list_cache(base_url: str | None) -> None:
     """List available mathlib caches."""
     manager = MathlibCacheManager()
     entries = manager.list_entries()
@@ -23,7 +27,10 @@ def list_cache() -> None:
         return
 
     for entry in entries:
-        click.echo(entry.version)
+        if base_url:
+            click.echo(f"{entry.version} {manager.build_archive_url(entry.version, base_url)}")
+        else:
+            click.echo(entry.version)
 
 
 @mathlib.command(name="pack")
