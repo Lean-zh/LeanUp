@@ -51,17 +51,36 @@ leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 # 查看 LeanUp 已有缓存版本
 leanup cache mathlib list
 
-# 进入当前仓库后，打包本仓库的 .lake/packages 到指定目录
+# 在 tempfile 临时工作目录中创建某个 Lean 版本的共享 mathlib packages 缓存
+leanup cache create v4.22.0
+
+# 进入当前仓库后，打包本仓库的 .lake/packages 到共享缓存目录
 cd /path/to/repo
-leanup cache mathlib pack --lean-version v4.22.0 --output-dir /path/to/cache
+leanup cache pack v4.22.0
+
+# 或者打包到指定目录
+leanup cache pack v4.22.0 --output-dir /path/to/cache
+
+# 启动缓存服务：/f/... 给 lake exe cache get，/packages/... 给 leanup cache get
+leanup cache serve
+
+# 让 mathlib 官方 cache client 改走 LeanUp 服务
+export MATHLIB_CACHE_GET_URL=http://127.0.0.1:8000
+lake exe cache get
+
+# 从 LeanUp cache 服务下载 packages.tar.gz，并安全替换目标项目的 .lake/packages
+leanup cache get v4.22.0 --base-url http://127.0.0.1:8000 --target-dir /path/to/repo
 
 # 如需关闭并发压缩，可以显式禁用 pigz
-leanup cache mathlib pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
+leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
 - 默认会在本机存在 `pigz` 时启用并发压缩
 - 如果系统里没有 `pigz`，命令会自动回退到普通 gzip 打包
 - `--no-pigz` 可显式关闭并发压缩
+- `leanup cache create` 会在临时目录中执行 `lake update` 和 `lake exe cache get`，再把 `.lake/packages` 回填到共享缓存并生成 `packages.tar.gz`
+- `leanup cache serve` 的 `.ltar` 路由只做 mathlib 兼容分发；`packages.tar.gz` 是 LeanUp 自定义缓存格式
+- `leanup cache pack` 和 `leanup cache get` 都先写临时文件 / 临时目录，成功后再原子替换正式路径，避免中断损坏缓存
 
 ### 仓库管理
 
