@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import json
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
@@ -20,6 +21,15 @@ class CacheRequestHandler(SimpleHTTPRequestHandler):
             payload = b"ok\n"
             self.send_response(200)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if path == "/packages/mathlib/index.json":
+            payload = json.dumps({"versions": self._list_package_versions()}, ensure_ascii=True).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
             self.wfile.write(payload)
@@ -54,6 +64,15 @@ class CacheRequestHandler(SimpleHTTPRequestHandler):
             return self.packages_root / parts[2] / "packages.tar.gz"
 
         return None
+
+    def _list_package_versions(self) -> list[str]:
+        if not self.packages_root.exists():
+            return []
+        versions: list[str] = []
+        for child in sorted(self.packages_root.iterdir()):
+            if child.is_dir() and (child / "packages.tar.gz").exists():
+                versions.append(child.name)
+        return versions
 
 
 def make_cache_server(host: str, port: int, ltar_root: Path, packages_root: Path) -> ThreadingHTTPServer:

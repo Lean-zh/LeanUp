@@ -179,6 +179,41 @@ def test_mathlib_cache_list_prints_package_urls(monkeypatch, tmp_path):
     assert "v4.27.0 http://127.0.0.1:8000/packages/mathlib/v4.27.0/packages.tar.gz" in result.output
 
 
+def test_mathlib_cache_list_reads_remote_index(tmp_path):
+    runner = CliRunner()
+    packages_root = tmp_path / "packages-cache"
+    (packages_root / "v4.22.0").mkdir(parents=True, exist_ok=True)
+    (packages_root / "v4.22.0" / "packages.tar.gz").write_bytes(b"ok")
+    (packages_root / "v4.27.0").mkdir(parents=True, exist_ok=True)
+    (packages_root / "v4.27.0" / "packages.tar.gz").write_bytes(b"ok")
+
+    ltar_root = tmp_path / "isolated-mathlib4-cache"
+    ltar_root.mkdir(parents=True, exist_ok=True)
+    server = make_cache_server("127.0.0.1", 0, ltar_root, packages_root)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    try:
+        result = runner.invoke(
+            cli,
+            [
+                "cache",
+                "mathlib",
+                "list",
+                "--base-url",
+                f"http://127.0.0.1:{server.server_port}",
+            ],
+        )
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+        server.server_close()
+
+    assert result.exit_code == 0
+    assert f"v4.22.0 http://127.0.0.1:{server.server_port}/packages/mathlib/v4.22.0/packages.tar.gz" in result.output
+    assert f"v4.27.0 http://127.0.0.1:{server.server_port}/packages/mathlib/v4.27.0/packages.tar.gz" in result.output
+
+
 def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
     runner = CliRunner()
     packages_root = tmp_path / "packages-cache"
@@ -243,6 +278,7 @@ def test_cache_server_resolves_ltar_and_packages_routes(tmp_path):
     assert request_handler._resolve_path("/f/abc.ltar") == ltar_root.resolve() / "abc.ltar"
     assert request_handler._resolve_path("/f/owner/repo/abc.ltar") == ltar_root.resolve() / "repos" / "owner" / "repo" / "abc.ltar"
     assert request_handler._resolve_path("/packages/mathlib/v4.22.0/packages.tar.gz") == packages_root.resolve() / "v4.22.0" / "packages.tar.gz"
+    assert request_handler._list_package_versions() == []
 
 
 def test_cache_pack_honors_cleanup_cache_dir_env_in_subprocess(tmp_path):

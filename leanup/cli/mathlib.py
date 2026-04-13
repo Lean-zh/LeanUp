@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import click
+import requests
 
 from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version
 
@@ -20,7 +21,11 @@ def mathlib() -> None:
 def list_cache(base_url: str | None) -> None:
     """List available mathlib caches."""
     manager = MathlibCacheManager()
-    entries = manager.list_entries()
+    entries = manager.list_remote_entries(base_url) if base_url else manager.list_entries()
+    if not entries and not base_url:
+        entries = manager.list_entries()
+    elif not entries and base_url:
+        entries = manager.list_entries()
 
     if not entries:
         click.echo("No mathlib caches found.")

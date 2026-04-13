@@ -73,6 +73,24 @@ class MathlibCacheManager:
             for version in sorted(versions)
         ]
 
+    def list_remote_entries(self, base_url: str) -> list[CacheEntry]:
+        index_url = urljoin(base_url.rstrip("/") + "/", "packages/mathlib/index.json")
+        try:
+            response = requests.get(index_url, timeout=10)
+            response.raise_for_status()
+            payload = response.json()
+        except Exception:
+            return []
+
+        entries: list[CacheEntry] = []
+        for version in payload.get("versions", []):
+            try:
+                normalized = normalize_lean_version(version)
+            except ValueError:
+                continue
+            entries.append(CacheEntry(version=normalized, local_path=self.get_local_packages_dir(normalized)))
+        return entries
+
     def ensure_local_cache(self, version: str) -> Path | None:
         local_path = self.get_local_packages_dir(version)
         if local_path.exists():
