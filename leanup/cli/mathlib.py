@@ -7,17 +7,12 @@ import click
 from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version
 
 
-@click.group()
+@click.group(name="mathlib")
 def mathlib() -> None:
-    """Manage mathlib-specific helpers and caches."""
+    """Manage mathlib-specific caches."""
 
 
-@mathlib.group()
-def cache() -> None:
-    """Manage reusable mathlib package caches."""
-
-
-@cache.command(name="list")
+@mathlib.command(name="list")
 def list_cache() -> None:
     """List available mathlib caches."""
     manager = MathlibCacheManager()
@@ -31,7 +26,7 @@ def list_cache() -> None:
         click.echo(entry.version)
 
 
-@cache.command(name="pack")
+@mathlib.command(name="pack")
 @click.option(
     "--repo-dir",
     type=click.Path(path_type=Path, file_okay=False, dir_okay=True),

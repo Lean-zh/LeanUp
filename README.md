@@ -24,7 +24,6 @@
 - **⚡ 项目初始化**: 快速创建固定 Lean 版本的项目，并复用同版本 mathlib 缓存
 - **🌍 跨平台支持**: 支持 Linux、macOS 和 Windows
 - **📦 简单易用**: 通过 `pip install leanup` 快速安装
-- **🔄 命令代理**: 透明代理所有 elan 命令，无缝体验
 
 ## 🚀 快速开始
 
@@ -49,8 +48,6 @@ leanup --help
 # 快速初始化一个 Lean + mathlib 项目
 leanup setup ./Demo --lean-version v4.27.0
 
-# 如需手动透传 elan，也可以继续使用
-leanup elan toolchain list
 ```
 
 ## 📖 详细使用指南
@@ -122,14 +119,14 @@ leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 
 ```bash
 # 查看 LeanUp 已有缓存版本
-leanup mathlib cache list
+leanup cache mathlib list
 
 # 进入一个 Lean 仓库后，把当前仓库的 .lake/packages 打包到指定目录
 cd /path/to/repo
-leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache
+leanup cache mathlib pack --lean-version v4.22.0 --output-dir /path/to/cache
 
 # 如需关闭并发压缩，可以显式禁用 pigz
-leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
+leanup cache mathlib pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
 - 默认会在本机存在 `pigz` 时启用并发压缩

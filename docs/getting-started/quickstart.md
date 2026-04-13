@@ -44,20 +44,19 @@ leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 - 如果已有 `packages` 缓存，则按 `symlink` 或 `copy` 的方式放进项目
 - 如果缓存不存在，则会自动执行 `lake update`、`lake exe cache get`，再把 `.lake/packages` 写回缓存
 - `setup` 会自动确保 `elan` 和目标 Lean toolchain 已安装
-- 如果你需要直接透传给 `elan`，仍然可以使用 `leanup elan ...`
 
 ### 管理 mathlib 缓存
 
 ```bash
 # 查看 LeanUp 已有缓存版本
-leanup mathlib cache list
+leanup cache mathlib list
 
 # 进入当前仓库后，打包本仓库的 .lake/packages 到指定目录
 cd /path/to/repo
-leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache
+leanup cache mathlib pack --lean-version v4.22.0 --output-dir /path/to/cache
 
 # 如需关闭并发压缩，可以显式禁用 pigz
-leanup mathlib cache pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
+leanup cache mathlib pack --lean-version v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
 - 默认会在本机存在 `pigz` 时启用并发压缩

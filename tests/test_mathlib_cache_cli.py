@@ -18,8 +18,8 @@ def test_mathlib_cache_pack_archives_current_repo(tmp_path):
     result = runner.invoke(
         cli,
         [
-            "mathlib",
             "cache",
+            "mathlib",
             "pack",
             "--repo-dir",
             str(repo_dir),
@@ -53,8 +53,8 @@ def test_mathlib_cache_pack_follows_root_packages_symlink(tmp_path):
     result = runner.invoke(
         cli,
         [
-            "mathlib",
             "cache",
+            "mathlib",
             "pack",
             "--repo-dir",
             str(repo_dir),
@@ -95,8 +95,8 @@ def test_mathlib_cache_pack_passes_pigz_option(monkeypatch, tmp_path):
     result = runner.invoke(
         cli,
         [
-            "mathlib",
             "cache",
+            "mathlib",
             "pack",
             "--repo-dir",
             str(repo_dir),
@@ -135,8 +135,8 @@ def test_mathlib_cache_pack_uses_pigz_by_default(monkeypatch, tmp_path):
     result = runner.invoke(
         cli,
         [
-            "mathlib",
             "cache",
+            "mathlib",
             "pack",
             "--repo-dir",
             str(repo_dir),
