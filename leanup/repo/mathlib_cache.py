@@ -227,4 +227,7 @@ class MathlibCacheManager:
             member_path = (target_dir / member.name).resolve()
             if not str(member_path).startswith(str(target_dir)):
                 raise ValueError(f"Archive contains unsafe path: {member.name}")
-        tar.extractall(target_dir, filter="data")
+        try:
+            tar.extractall(target_dir, filter="data")
+        except TypeError:
+            tar.extractall(target_dir)
