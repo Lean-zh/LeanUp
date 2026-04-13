@@ -328,7 +328,7 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_env_lean = fake_lake_env_lean
         LeanRepo.lake = fake_lake
 
-        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.27.0" / "packages" / "mathlib"
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.27.0" / "packages" / "mathlib"
         _init_fake_package_repo(cached_packages)
 
         manager = LeanProjectSetup(elan_manager=FakeElanManager())
@@ -393,7 +393,7 @@ def test_setup_copy_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_build = fake_lake_build
         LeanRepo.lake_env_lean = fake_lake_env_lean
 
-        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib"
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.22.0" / "packages" / "mathlib"
         _init_fake_package_repo(cached_packages)
 
         manager = LeanProjectSetup(elan_manager=FakeElanManager())

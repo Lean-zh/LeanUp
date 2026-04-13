@@ -10,6 +10,7 @@ import uvicorn
 def create_cache_app(ltar_root: Path, packages_root: Path) -> FastAPI:
     ltar_root = ltar_root.resolve()
     packages_root = packages_root.resolve()
+    archives_root = packages_root / "archives"
 
     app = FastAPI(title="LeanUp Cache Server")
 
@@ -19,7 +20,7 @@ def create_cache_app(ltar_root: Path, packages_root: Path) -> FastAPI:
 
     @app.get("/packages/mathlib/index.json")
     def package_index() -> JSONResponse:
-        return JSONResponse({"versions": list_package_versions(packages_root)})
+        return JSONResponse({"versions": list_package_versions(archives_root)})
 
     @app.get("/f/{filename:path}")
     def ltar_file(filename: str) -> FileResponse:
@@ -28,7 +29,7 @@ def create_cache_app(ltar_root: Path, packages_root: Path) -> FastAPI:
 
     @app.get("/packages/mathlib/{version}/packages.tar.gz")
     def package_archive(version: str) -> FileResponse:
-        return file_response(packages_root / version / "packages.tar.gz")
+        return file_response(archives_root / version / "packages.tar.gz")
 
     return app
 

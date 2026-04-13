@@ -19,6 +19,7 @@ class TestCLI:
         result = self.runner.invoke(cli, ["cache", "--help"])
 
         assert result.exit_code == 0
+        assert "list" in result.output
         assert "get" in result.output
         assert "pack" in result.output
         assert "serve" in result.output

@@ -1,7 +1,6 @@
 import click
 
-from leanup.cli.cache_ops import create_cache, get_cache, pack_cache, serve_cache
-from leanup.cli.mathlib import mathlib
+from leanup.cli.cache_ops import create_cache, get_cache, list_cache, pack_cache, serve_cache
 from leanup.cli.repo import repo
 from leanup.cli.setup import setup_project
 from leanup.utils.custom_logger import setup_logger
@@ -24,9 +23,9 @@ def cache() -> None:
 
 cache.add_command(serve_cache)
 cache.add_command(pack_cache)
+cache.add_command(list_cache)
 cache.add_command(get_cache)
 cache.add_command(create_cache)
-cache.add_command(mathlib)
 
 
 cli.add_command(setup_project)

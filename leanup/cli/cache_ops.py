@@ -11,31 +11,33 @@ from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_versio
 from leanup.repo.project_setup import LeanProjectSetup
 
 
+PACKAGES_CACHE_ROOT = LEANUP_CACHE_DIR / "mathlib"
+
+
 @click.command(name="pack")
 @click.argument("lean_version")
 @click.option(
-    "--repo-dir",
-    type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    default=Path.cwd,
-    help="Lean repository directory containing .lake/packages.",
-)
-@click.option(
     "--output-dir",
     type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    default=LEANUP_CACHE_DIR / "setup" / "mathlib",
-    help="Directory where <version>/packages.tar.gz will be written.",
+    default=PACKAGES_CACHE_ROOT,
+    help="Mathlib cache root containing packages/<version>/packages and archives/<version>/packages.tar.gz.",
 )
 @click.option(
     "--pigz/--no-pigz",
     default=True,
     help="Use pigz for parallel compression when it is available.",
 )
-def pack_cache(lean_version: str, repo_dir: Path, output_dir: Path, pigz: bool) -> None:
-    """Pack current repository packages as packages.tar.gz."""
+def pack_cache(lean_version: str, output_dir: Path, pigz: bool) -> None:
+    """Pack cached packages/<version>/packages into archives/<version>/packages.tar.gz."""
     manager = MathlibCacheManager(cache_root=output_dir)
     version = normalize_lean_version(lean_version)
-    packages_dir = repo_dir / ".lake" / "packages"
+    packages_dir = manager.get_local_packages_dir(version)
     archive = manager.get_local_archive_path(version)
+
+    if not packages_dir.exists():
+        raise click.ClickException(
+            f"Packages cache not found: {packages_dir}. Run 'leanup cache create {version}' or 'leanup cache get {version} --base-url ...' first."
+        )
 
     try:
         packed = manager.pack_packages_archive(packages_dir, archive, use_pigz=pigz)
@@ -45,27 +47,42 @@ def pack_cache(lean_version: str, repo_dir: Path, output_dir: Path, pigz: bool) 
     click.echo(str(packed))
 
 
+@click.command(name="list")
+@click.option(
+    "--base-url",
+    help="Print packages.tar.gz URLs using this base URL, for example http://127.0.0.1:8000.",
+)
+def list_cache(base_url: str | None) -> None:
+    """List available mathlib package caches."""
+    manager = MathlibCacheManager()
+    entries = manager.list_remote_entries(base_url) if base_url else manager.list_entries()
+
+    if not entries:
+        click.echo("No mathlib caches found.")
+        return
+
+    for entry in entries:
+        if base_url:
+            click.echo(f"{entry.version} {manager.build_archive_url(entry.version, base_url)}")
+        else:
+            click.echo(entry.version)
+
+
 @click.command(name="get")
 @click.argument("lean_version")
 @click.option("--base-url", required=True, help="Base URL serving /packages/mathlib/<version>/packages.tar.gz.")
 @click.option(
-    "--target-dir",
-    type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    default=Path.cwd,
-    help="Lean project directory where .lake/packages will be replaced.",
-)
-@click.option(
     "--cache-dir",
     type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    default=LEANUP_CACHE_DIR / "setup" / "mathlib",
-    help="Local cache directory used for packages archives.",
+    default=PACKAGES_CACHE_ROOT,
+    help="Mathlib cache root containing packages/<version>/packages and archives/<version>/packages.tar.gz.",
 )
-def get_cache(lean_version: str, base_url: str, target_dir: Path, cache_dir: Path) -> None:
-    """Download packages.tar.gz and extract it safely."""
+def get_cache(lean_version: str, base_url: str, cache_dir: Path) -> None:
+    """Download packages.tar.gz into local cache and extract packages/<version>/packages."""
     manager = MathlibCacheManager(cache_root=cache_dir)
 
     try:
-        packages_dir = manager.fetch_packages(lean_version, base_url, target_dir)
+        packages_dir = manager.fetch_packages(lean_version, base_url)
     except (ValueError, requests.RequestException) as exc:
         raise click.ClickException(str(exc)) from exc
 
@@ -84,8 +101,8 @@ def get_cache(lean_version: str, base_url: str, target_dir: Path, cache_dir: Pat
 @click.option(
     "--packages-root",
     type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
-    default=LEANUP_CACHE_DIR / "setup" / "mathlib",
-    help="Directory serving <version>/packages.tar.gz for /packages/... routes.",
+    default=PACKAGES_CACHE_ROOT,
+    help="Mathlib cache root containing packages/ and archives/ subdirectories.",
 )
 def serve_cache(host: str, port: int, ltar_root: Path, packages_root: Path) -> None:
     """Serve .ltar and packages.tar.gz cache files."""

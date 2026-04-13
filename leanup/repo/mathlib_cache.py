@@ -41,34 +41,40 @@ def remove_path(path: Path) -> None:
 @dataclass
 class CacheEntry:
     version: str
-    local_path: Path
+    packages_path: Path
+    archive_path: Path
 
     @property
     def local_available(self) -> bool:
-        return self.local_path.exists()
+        return self.packages_path.exists() or self.archive_path.exists()
 
 
 class MathlibCacheManager:
     def __init__(self, cache_root: Path | None = None):
-        self.cache_root = cache_root or (LEANUP_CACHE_DIR / "setup" / "mathlib")
+        self.cache_root = cache_root or (LEANUP_CACHE_DIR / "mathlib")
+        self.packages_root = self.cache_root / "packages"
+        self.archives_root = self.cache_root / "archives"
 
     def get_local_packages_dir(self, version: str) -> Path:
-        return self.cache_root / normalize_lean_version(version) / "packages"
+        return self.packages_root / normalize_lean_version(version) / "packages"
 
     def get_local_archive_path(self, version: str) -> Path:
-        return self.cache_root / normalize_lean_version(version) / "packages.tar.gz"
+        return self.archives_root / normalize_lean_version(version) / "packages.tar.gz"
 
     def list_entries(self) -> list[CacheEntry]:
         versions = set()
-        if self.cache_root.exists():
-            for child in self.cache_root.iterdir():
+        for root in (self.packages_root, self.archives_root):
+            if not root.exists():
+                continue
+            for child in root.iterdir():
                 if child.is_dir() and LEAN_VERSION_PATTERN.match(child.name):
                     versions.add(normalize_lean_version(child.name))
 
         return [
             CacheEntry(
                 version=version,
-                local_path=self.get_local_packages_dir(version),
+                packages_path=self.get_local_packages_dir(version),
+                archive_path=self.get_local_archive_path(version),
             )
             for version in sorted(versions)
         ]
@@ -88,7 +94,13 @@ class MathlibCacheManager:
                 normalized = normalize_lean_version(version)
             except ValueError:
                 continue
-            entries.append(CacheEntry(version=normalized, local_path=self.get_local_packages_dir(normalized)))
+            entries.append(
+                CacheEntry(
+                    version=normalized,
+                    packages_path=self.get_local_packages_dir(normalized),
+                    archive_path=self.get_local_archive_path(normalized),
+                )
+            )
         return entries
 
     def ensure_local_cache(self, version: str) -> Path | None:
@@ -99,7 +111,7 @@ class MathlibCacheManager:
 
     def refresh_local_cache(self, version: str, source_dir: Path, force: bool = True) -> Path:
         normalized = normalize_lean_version(version)
-        version_root = self.cache_root / normalized
+        version_root = self.packages_root / normalized
         packages_dir = version_root / "packages"
         if packages_dir.exists() and not force:
             return packages_dir
@@ -209,9 +221,9 @@ class MathlibCacheManager:
             remove_path(temp_root)
             raise
 
-    def fetch_packages(self, version: str, base_url: str, target_dir: Path) -> Path:
+    def fetch_packages(self, version: str, base_url: str) -> Path:
         archive = self.download_archive(version, self.build_archive_url(version, base_url))
-        return self.extract_archive(archive, target_dir / ".lake" / "packages")
+        return self.extract_archive(archive, self.get_local_packages_dir(version))
 
     def _pack_with_pigz(self, source_dir: Path, output_file: Path) -> None:
         logger.info(f"Streaming tar archive from {source_dir.parent} into pigz")
