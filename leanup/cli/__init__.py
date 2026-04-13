@@ -1,16 +1,9 @@
 import click
-import sys
 
-from leanup.utils.custom_logger import setup_logger
-from leanup.cli.mathlib import mathlib
+from leanup.cli.cache_ops import create_cache, get_cache, list_cache, pack_cache, serve_cache
 from leanup.cli.repo import repo
 from leanup.cli.setup import setup_project
-from leanup.cli.elan_ops import (
-    init_elan,
-    install_lean_toolchain,
-    proxy_elan,
-    show_status,
-)
+from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("leanup_cli")
 
@@ -23,39 +16,20 @@ def cli(ctx):
     ctx.ensure_object(dict)
 
 
-@cli.command()
-def init():
-    """Install latest elan"""
-    init_elan()
+@click.group()
+def cache() -> None:
+    """Manage reusable caches."""
 
 
-@cli.command()
-@click.argument("version", required=False)
-def install(version):
-    """Install Lean toolchain version via elan"""
-    install_lean_toolchain(version)
-
-
-@cli.command()
-def status():
-    """Show status information"""
-    show_status()
+cache.add_command(serve_cache)
+cache.add_command(pack_cache)
+cache.add_command(list_cache)
+cache.add_command(get_cache)
+cache.add_command(create_cache)
 
 
 cli.add_command(setup_project)
-cli.add_command(mathlib)
-
-
-@cli.command(context_settings=dict(ignore_unknown_options=True))
-@click.argument("args", nargs=-1, type=click.UNPROCESSED)
-def elan(args):
-    """Proxy elan commands"""
-    try:
-        result = proxy_elan(list(args))
-        sys.exit(result)
-    except KeyboardInterrupt:
-        click.echo("\nInterrupted", err=True)
-        sys.exit(1)
+cli.add_command(cache)
 
 
 cli.add_command(repo)

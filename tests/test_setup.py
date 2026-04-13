@@ -328,7 +328,7 @@ def test_setup_symlink_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_env_lean = fake_lake_env_lean
         LeanRepo.lake = fake_lake
 
-        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.27.0" / "packages" / "mathlib"
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.27.0" / "packages" / "mathlib"
         _init_fake_package_repo(cached_packages)
 
         manager = LeanProjectSetup(elan_manager=FakeElanManager())
@@ -393,7 +393,7 @@ def test_setup_copy_mode_reuses_shared_cache(tmp_path):
         LeanRepo.lake_build = fake_lake_build
         LeanRepo.lake_env_lean = fake_lake_env_lean
 
-        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib"
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.22.0" / "packages" / "mathlib"
         _init_fake_package_repo(cached_packages)
 
         manager = LeanProjectSetup(elan_manager=FakeElanManager())
@@ -449,7 +449,7 @@ def test_setup_symlink_mode_skips_lake_update_when_manifest_exists(tmp_path):
     original_lake_env_lean = LeanRepo.lake_env_lean
 
     try:
-        cached_packages = cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib"
+        cached_packages = cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.22.0" / "packages" / "mathlib"
         _init_fake_package_repo(cached_packages)
 
         LeanRepo.lake_update = fake_lake_update
@@ -538,9 +538,9 @@ def test_setup_uses_bundled_manifest_without_external_reference(tmp_path):
         assert '"inputRev": "v4.22.0"' in manifest_text
         assert '"name": "BundledDemo"' in manifest_text
         assert '"rev": "' in manifest_text
-        assert (cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages").exists()
+        assert (cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.22.0" / "packages").exists()
         assert (
-            cache_module.LEANUP_CACHE_DIR / "setup" / "mathlib" / "v4.22.0" / "packages" / "mathlib" / "README.md"
+            cache_module.LEANUP_CACHE_DIR / "mathlib" / "packages" / "v4.22.0" / "packages" / "mathlib" / "README.md"
         ).read_text(encoding="utf-8").strip() == "cached from cache get"
     finally:
         cache_module.LEANUP_CACHE_DIR = original_cache_dir
