@@ -110,7 +110,7 @@ leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 规则说明：
 
 - `--dependency-mode` 支持 `symlink` 和 `copy`
-- 默认缓存目录为 `LEANUP_CACHE_DIR/setup/mathlib/<version>/packages`
+- 默认缓存目录为 `LEANUP_CACHE_DIR/mathlib/packages/<version>/packages`
 - 如果已有 `packages` 缓存，则按 `symlink` 或 `copy` 的方式放进项目
 - 如果缓存不存在，则会自动执行 `lake update`、`lake exe cache get`，再把 `.lake/packages` 写回缓存
 - `setup` 会确保对应 Lean toolchain 已通过 `elan` 安装
@@ -119,20 +119,22 @@ leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 
 ```bash
 # 查看 LeanUp 已有缓存版本
-leanup cache mathlib list
+leanup cache list
+
+# 查看远端服务已有缓存版本和下载 URL
+leanup cache list --base-url http://127.0.0.1:8000
 
 # 在临时目录创建某个 Lean 版本对应的共享 mathlib packages 缓存
 leanup cache create v4.22.0
 
-# 进入一个 Lean 仓库后，把当前仓库的 .lake/packages 打包到共享缓存目录
-cd /path/to/repo
+# 将本地缓存里的 packages/<version>/packages 打包成 archives/<version>/packages.tar.gz
 leanup cache pack v4.22.0
 
-# 或者打包到指定目录
+# 或者使用指定缓存根
 leanup cache pack v4.22.0 --output-dir /path/to/cache
 
-# 从 LeanUp cache 服务下载 packages.tar.gz，并安全替换目标项目的 .lake/packages
-leanup cache get v4.22.0 --base-url http://127.0.0.1:8000 --target-dir /path/to/repo
+# 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根
+leanup cache get v4.22.0 --base-url http://127.0.0.1:8000
 
 # 启动本地缓存服务：
 # - /f/... 路由给 lake exe cache get 使用
@@ -150,7 +152,9 @@ leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
 - 默认会在本机存在 `pigz` 时启用并发压缩
 - 如果系统里没有 `pigz`，命令会自动回退到普通 gzip 打包
 - `--no-pigz` 可显式关闭并发压缩
-- `leanup cache create` 会在 `tempfile` 临时工作目录中执行 `lake update` 和 `lake exe cache get`，然后把 `.lake/packages` 回填到共享缓存，再生成 `packages.tar.gz`
+- `leanup cache create` 会在 `tempfile` 临时工作目录中执行 `lake update` 和 `lake exe cache get`，然后把 `.lake/packages` 回填到 `mathlib/packages/<version>/packages`，再生成 `mathlib/archives/<version>/packages.tar.gz`
+- `leanup cache pack` 会从 `mathlib/packages/<version>/packages` 生成 `mathlib/archives/<version>/packages.tar.gz`
+- `leanup cache get` 会下载远端 `packages.tar.gz` 到 `mathlib/archives/<version>/packages.tar.gz`，并解压到 `mathlib/packages/<version>/packages`
 - `leanup cache get` 和 `leanup cache pack` 都通过临时文件 / 临时目录完成后再原子替换，避免中途中断破坏缓存
 - `leanup cache serve` 使用 FastAPI/uvicorn 提供服务，并暴露 `/packages/mathlib/index.json` 让其他机器列出远端可用版本
 

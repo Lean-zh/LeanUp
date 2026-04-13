@@ -5,10 +5,10 @@
 ## 功能特性
 
 - `leanup setup`：快速创建固定 Lean 版本项目，支持 mathlib 共享缓存
-- `leanup cache mathlib list`：查看本地 mathlib 共享缓存版本
+- `leanup cache list`：查看本地或远端 mathlib 共享缓存版本
 - `leanup cache create <version>`：在临时目录创建某个 Lean 版本的 mathlib packages 缓存
-- `leanup cache pack <version>`：将当前仓库的 `.lake/packages` 打包为共享缓存归档
-- `leanup cache get <version>`：从 LeanUp cache 服务下载 `packages.tar.gz` 并安全解压
+- `leanup cache pack <version>`：将本地缓存里的 packages 目录打包为共享缓存归档
+- `leanup cache get <version>`：从 LeanUp cache 服务下载 `packages.tar.gz` 并解压到本地缓存
 - `leanup cache serve`：提供 `.ltar` 兼容路由和 LeanUp packages 归档下载服务
 - `leanup repo install`：安装 Lean 仓库，支持命令优先、交互补参
 - `leanup repo list`：查看已安装仓库

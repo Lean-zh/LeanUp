@@ -31,12 +31,12 @@ def pack_cache(lean_version: str, output_dir: Path, pigz: bool) -> None:
     """Pack cached packages/<version>/packages into archives/<version>/packages.tar.gz."""
     manager = MathlibCacheManager(cache_root=output_dir)
     version = normalize_lean_version(lean_version)
-    packages_dir = manager.get_local_packages_dir(version)
+    packages_dir = manager.ensure_local_cache(version)
     archive = manager.get_local_archive_path(version)
 
-    if not packages_dir.exists():
+    if packages_dir is None:
         raise click.ClickException(
-            f"Packages cache not found: {packages_dir}. Run 'leanup cache create {version}' or 'leanup cache get {version} --base-url ...' first."
+            f"Packages cache not found: {manager.get_local_packages_dir(version)}. Run 'leanup cache create {version}' or 'leanup cache get {version} --base-url ...' first."
         )
 
     try:
