@@ -1,15 +1,13 @@
 import os
 from pathlib import Path
-from http.server import ThreadingHTTPServer
 import subprocess
 import sys
 import tarfile
-import threading
+import time
 
 from click.testing import CliRunner
-
 from leanup.cli import cli
-from leanup.repo.cache_server import make_cache_server
+from leanup.repo.cache_server import create_cache_app, list_package_versions, resolve_ltar_path
 from leanup.repo.mathlib_cache import MathlibCacheManager
 from leanup.repo.project_setup import LeanProjectSetup
 
@@ -189,29 +187,47 @@ def test_mathlib_cache_list_reads_remote_index(tmp_path):
 
     ltar_root = tmp_path / "isolated-mathlib4-cache"
     ltar_root.mkdir(parents=True, exist_ok=True)
-    server = make_cache_server("127.0.0.1", 0, ltar_root, packages_root)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
 
+    command = [
+        sys.executable,
+        "-c",
+        "from leanup.cli import cli; cli()",
+        "cache",
+        "serve",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18081",
+        "--ltar-root",
+        str(ltar_root),
+        "--packages-root",
+        str(packages_root),
+    ]
+    proc = subprocess.Popen(
+        command,
+        cwd=Path(__file__).resolve().parents[1],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     try:
+        if proc.stdout:
+            proc.stdout.readline()
+            proc.stdout.readline()
+            proc.stdout.readline()
+        time.sleep(1)
+        base_url = "http://127.0.0.1:18081"
         result = runner.invoke(
             cli,
-            [
-                "cache",
-                "mathlib",
-                "list",
-                "--base-url",
-                f"http://127.0.0.1:{server.server_port}",
-            ],
+            ["cache", "mathlib", "list", "--base-url", base_url],
         )
     finally:
-        server.shutdown()
-        thread.join(timeout=5)
-        server.server_close()
+        proc.terminate()
+        proc.wait(timeout=5)
 
     assert result.exit_code == 0
-    assert f"v4.22.0 http://127.0.0.1:{server.server_port}/packages/mathlib/v4.22.0/packages.tar.gz" in result.output
-    assert f"v4.27.0 http://127.0.0.1:{server.server_port}/packages/mathlib/v4.27.0/packages.tar.gz" in result.output
+    assert f"v4.22.0 {base_url}/packages/mathlib/v4.22.0/packages.tar.gz" in result.output
+    assert f"v4.27.0 {base_url}/packages/mathlib/v4.27.0/packages.tar.gz" in result.output
 
 
 def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
@@ -227,19 +243,42 @@ def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
     archive = archive_dir / "packages.tar.gz"
     MathlibCacheManager().pack_packages_archive(source_packages.parent, archive)
 
-    ltar_root = tmp_path / "isolated-mathlib4-cache"
-    ltar_root.mkdir(parents=True, exist_ok=True)
-    server = make_cache_server("127.0.0.1", 0, ltar_root, packages_root)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-
     target_dir = tmp_path / "Demo"
     target_dir.mkdir(parents=True, exist_ok=True)
     stale_packages = target_dir / ".lake" / "packages"
     stale_packages.mkdir(parents=True, exist_ok=True)
     (stale_packages / "STALE.txt").write_text("stale\n", encoding="utf-8")
 
+    ltar_root = tmp_path / "isolated-mathlib4-cache"
+    ltar_root.mkdir(parents=True, exist_ok=True)
+    command = [
+        sys.executable,
+        "-c",
+        "from leanup.cli import cli; cli()",
+        "cache",
+        "serve",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18082",
+        "--ltar-root",
+        str(ltar_root),
+        "--packages-root",
+        str(packages_root),
+    ]
+    proc = subprocess.Popen(
+        command,
+        cwd=Path(__file__).resolve().parents[1],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     try:
+        if proc.stdout:
+            proc.stdout.readline()
+            proc.stdout.readline()
+            proc.stdout.readline()
+        time.sleep(1)
         result = runner.invoke(
             cli,
             [
@@ -247,7 +286,7 @@ def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
                 "get",
                 "v4.22.0",
                 "--base-url",
-                f"http://127.0.0.1:{server.server_port}",
+                "http://127.0.0.1:18082",
                 "--target-dir",
                 str(target_dir),
                 "--cache-dir",
@@ -255,9 +294,8 @@ def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
             ],
         )
     finally:
-        server.shutdown()
-        thread.join(timeout=5)
-        server.server_close()
+        proc.terminate()
+        proc.wait(timeout=5)
 
     installed_readme = target_dir / ".lake" / "packages" / "mathlib" / "README.md"
     assert result.exit_code == 0
@@ -271,14 +309,9 @@ def test_cache_server_resolves_ltar_and_packages_routes(tmp_path):
     (packages_root / "v4.22.0").mkdir(parents=True, exist_ok=True)
     (ltar_root / "repos" / "owner" / "repo").mkdir(parents=True, exist_ok=True)
 
-    request_handler = object.__new__(make_cache_server("127.0.0.1", 0, ltar_root, packages_root).RequestHandlerClass.func)  # type: ignore[attr-defined]
-    request_handler.ltar_root = ltar_root.resolve()
-    request_handler.packages_root = packages_root.resolve()
-
-    assert request_handler._resolve_path("/f/abc.ltar") == ltar_root.resolve() / "abc.ltar"
-    assert request_handler._resolve_path("/f/owner/repo/abc.ltar") == ltar_root.resolve() / "repos" / "owner" / "repo" / "abc.ltar"
-    assert request_handler._resolve_path("/packages/mathlib/v4.22.0/packages.tar.gz") == packages_root.resolve() / "v4.22.0" / "packages.tar.gz"
-    assert request_handler._list_package_versions() == []
+    assert resolve_ltar_path(ltar_root.resolve(), "abc.ltar") == ltar_root.resolve() / "abc.ltar"
+    assert resolve_ltar_path(ltar_root.resolve(), "owner/repo/abc.ltar") == ltar_root.resolve() / "repos" / "owner" / "repo" / "abc.ltar"
+    assert list_package_versions(packages_root.resolve()) == []
 
 
 def test_cache_pack_honors_cleanup_cache_dir_env_in_subprocess(tmp_path):
@@ -349,6 +382,7 @@ def test_cache_serve_honors_explicit_roots_in_subprocess(tmp_path):
         stdout_line_1 = proc.stdout.readline().strip() if proc.stdout else ""
         stdout_line_2 = proc.stdout.readline().strip() if proc.stdout else ""
         stdout_line_3 = proc.stdout.readline().strip() if proc.stdout else ""
+        time.sleep(1)
     finally:
         proc.terminate()
         proc.wait(timeout=5)

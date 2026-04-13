@@ -6,7 +6,7 @@ import click
 import requests
 
 from leanup.const import LEANUP_CACHE_DIR
-from leanup.repo.cache_server import make_cache_server
+from leanup.repo.cache_server import run_cache_server
 from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version
 from leanup.repo.project_setup import LeanProjectSetup
 
@@ -89,16 +89,13 @@ def get_cache(lean_version: str, base_url: str, target_dir: Path, cache_dir: Pat
 )
 def serve_cache(host: str, port: int, ltar_root: Path, packages_root: Path) -> None:
     """Serve .ltar and packages.tar.gz cache files."""
-    server = make_cache_server(host, port, ltar_root, packages_root)
     click.echo(f"Serving cache on http://{host}:{port}")
     click.echo(f"  ltar root: {ltar_root}")
     click.echo(f"  packages root: {packages_root}")
     try:
-        server.serve_forever()
+        run_cache_server(host, port, ltar_root, packages_root)
     except KeyboardInterrupt:
         click.echo("\nStopped.", err=True)
-    finally:
-        server.server_close()
 
 
 @click.command(name="create")

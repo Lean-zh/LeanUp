@@ -80,6 +80,7 @@ leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
 - `--no-pigz` 可显式关闭并发压缩
 - `leanup cache create` 会在临时目录中执行 `lake update` 和 `lake exe cache get`，再把 `.lake/packages` 回填到共享缓存并生成 `packages.tar.gz`
 - `leanup cache serve` 的 `.ltar` 路由只做 mathlib 兼容分发；`packages.tar.gz` 是 LeanUp 自定义缓存格式
+- `leanup cache serve` 使用 FastAPI/uvicorn，并提供 `/packages/mathlib/index.json` 供其他机器列出远端可用版本
 - `leanup cache pack` 和 `leanup cache get` 都先写临时文件 / 临时目录，成功后再原子替换正式路径，避免中断损坏缓存
 
 ### 仓库管理

@@ -152,6 +152,7 @@ leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
 - `--no-pigz` 可显式关闭并发压缩
 - `leanup cache create` 会在 `tempfile` 临时工作目录中执行 `lake update` 和 `lake exe cache get`，然后把 `.lake/packages` 回填到共享缓存，再生成 `packages.tar.gz`
 - `leanup cache get` 和 `leanup cache pack` 都通过临时文件 / 临时目录完成后再原子替换，避免中途中断破坏缓存
+- `leanup cache serve` 使用 FastAPI/uvicorn 提供服务，并暴露 `/packages/mathlib/index.json` 让其他机器列出远端可用版本
 
 ### 交互式安装
 
