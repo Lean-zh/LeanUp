@@ -11,6 +11,7 @@ def create_cache_app(ltar_root: Path, packages_root: Path) -> FastAPI:
     ltar_root = ltar_root.resolve()
     packages_root = packages_root.resolve()
     archives_root = packages_root / "archives"
+    toolchain_archives_root = (packages_root.parent / "toolchains" / "archives").resolve()
 
     app = FastAPI(title="LeanUp Cache Server")
 
@@ -30,6 +31,23 @@ def create_cache_app(ltar_root: Path, packages_root: Path) -> FastAPI:
     @app.get("/packages/mathlib/{version}/packages.tar.gz")
     def package_archive(version: str) -> FileResponse:
         return file_response(archives_root / version / "packages.tar.gz")
+
+    @app.get("/toolchains/index.json")
+    def toolchain_index() -> JSONResponse:
+        return JSONResponse(
+            {
+                "has_base": (toolchain_archives_root / "base-elan.tar.gz").exists(),
+                "versions": list_package_versions(toolchain_archives_root),
+            }
+        )
+
+    @app.get("/toolchains/base-elan.tar.gz")
+    def toolchain_base_archive() -> FileResponse:
+        return file_response(toolchain_archives_root / "base-elan.tar.gz")
+
+    @app.get("/toolchains/{version}/toolchain.tar.gz")
+    def toolchain_archive(version: str) -> FileResponse:
+        return file_response(toolchain_archives_root / version / "toolchain.tar.gz")
 
     return app
 

@@ -35,7 +35,9 @@ jobs:
       run: |
         # Test basic CLI commands
         leanup --help
-        leanup cache --help
+        leanup mathlib --help
+        leanup serve --help
+        leanup toolchains --help
         leanup repo --help
         leanup repo install lean-zh/leanup
         leanup repo install lean-zh/repl

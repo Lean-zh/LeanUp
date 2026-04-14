@@ -2,7 +2,7 @@ import tempfile
 import subprocess
 from leanup.const import OS_TYPE, TMP_DIR
 import shlex
-from typing import Optional, Union, Tuple, List, Generator
+from typing import Optional, Union, Tuple, List, Generator, Dict
 from contextlib import contextmanager
 from pathlib import Path
 import os
@@ -12,7 +12,8 @@ def execute_command(command: Union[str, List[str]],
         text: bool = True,
         input: Union[str, None] = None,
         capture_output: bool = True,
-        timeout: Optional[int] = None) -> Tuple[str, str, int]:
+        timeout: Optional[int] = None,
+        env: Optional[Dict[str, str]] = None) -> Tuple[str, str, int]:
     """
     Execute command with subprocess.Popen.
 
@@ -34,14 +35,16 @@ def execute_command(command: Union[str, List[str]],
         # Handle string commands
         if isinstance(command, str) and OS_TYPE != 'Windows':
             command = shlex.split(command)
-        process = subprocess.Popen(
-                command,
-                cwd=cwd,
-                stdout=stdout_pipe,
-                stderr=stderr_pipe,
-                shell=OS_TYPE == 'Windows',
-                text=text
-            )
+        popen_kwargs = {
+            "cwd": cwd,
+            "stdout": stdout_pipe,
+            "stderr": stderr_pipe,
+            "shell": OS_TYPE == 'Windows',
+            "text": text,
+        }
+        if env is not None:
+            popen_kwargs["env"] = env
+        process = subprocess.Popen(command, **popen_kwargs)
         stdout, stderr = process.communicate(input=input, timeout=timeout)
         returncode = process.returncode
         stdout = stdout or ""

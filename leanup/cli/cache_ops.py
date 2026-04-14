@@ -47,42 +47,72 @@ def pack_cache(lean_version: str, output_dir: Path, pigz: bool) -> None:
     click.echo(str(packed))
 
 
-@click.command(name="list")
-@click.option(
-    "--base-url",
-    help="Print packages.tar.gz URLs using this base URL, for example http://127.0.0.1:8000.",
-)
-def list_cache(base_url: str | None) -> None:
-    """List available mathlib package caches."""
-    manager = MathlibCacheManager()
-    entries = manager.list_remote_entries(base_url) if base_url else manager.list_entries()
-
-    if not entries:
-        click.echo("No mathlib caches found.")
-        return
-
-    for entry in entries:
-        if base_url:
-            click.echo(f"{entry.version} {manager.build_archive_url(entry.version, base_url)}")
-        else:
-            click.echo(entry.version)
-
-
-@click.command(name="get")
+@click.command(name="unpack")
 @click.argument("lean_version")
-@click.option("--base-url", required=True, help="Base URL serving /packages/mathlib/<version>/packages.tar.gz.")
 @click.option(
     "--cache-dir",
     type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
     default=PACKAGES_CACHE_ROOT,
     help="Mathlib cache root containing packages/<version>/packages and archives/<version>/packages.tar.gz.",
 )
-def get_cache(lean_version: str, base_url: str, cache_dir: Path) -> None:
+def unpack_cache(lean_version: str, cache_dir: Path) -> None:
+    """Unpack archives/<version>/packages.tar.gz into packages/<version>/packages."""
+    manager = MathlibCacheManager(cache_root=cache_dir)
+    version = normalize_lean_version(lean_version)
+    archive = manager.get_local_archive_path(version)
+
+    try:
+        packages_dir = manager.extract_archive(archive, manager.get_local_packages_dir(version))
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(str(packages_dir))
+
+
+@click.command(name="list")
+@click.option(
+    "--local",
+    "source",
+    flag_value="local",
+    default=True,
+    help="List local mathlib package caches.",
+)
+@click.option(
+    "--remote",
+    "remote_url",
+    help="List remote mathlib package caches using this base URL.",
+)
+def list_cache(source: str, remote_url: str | None) -> None:
+    """List available mathlib package caches."""
+    manager = MathlibCacheManager()
+    entries = manager.list_remote_entries(remote_url) if remote_url else manager.list_entries()
+
+    if not entries:
+        click.echo("No mathlib caches found.")
+        return
+
+    for entry in entries:
+        if remote_url:
+            click.echo(f"{entry.version} {manager.build_archive_url(entry.version, remote_url)}")
+        else:
+            click.echo(entry.version)
+
+
+@click.command(name="get")
+@click.argument("lean_version")
+@click.option("--remote", "remote_url", required=True, help="Base URL serving /packages/mathlib/<version>/packages.tar.gz.")
+@click.option(
+    "--cache-dir",
+    type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
+    default=PACKAGES_CACHE_ROOT,
+    help="Mathlib cache root containing packages/<version>/packages and archives/<version>/packages.tar.gz.",
+)
+def get_cache(lean_version: str, remote_url: str, cache_dir: Path) -> None:
     """Download packages.tar.gz into local cache and extract packages/<version>/packages."""
     manager = MathlibCacheManager(cache_root=cache_dir)
 
     try:
-        packages_dir = manager.fetch_packages(lean_version, base_url)
+        packages_dir = manager.fetch_packages(lean_version, remote_url)
     except (ValueError, requests.RequestException) as exc:
         raise click.ClickException(str(exc)) from exc
 
