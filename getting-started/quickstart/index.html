@@ -517,6 +517,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#toolchains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        管理 toolchains 缓存
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -664,6 +675,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#toolchains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        管理 toolchains 缓存
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -761,16 +783,16 @@
 </code></pre></div>
 <h3 id="_5">快速创建项目</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 创建一个带 mathlib 的 Lean 项目，默认有缓存就复用，没有缓存就自动准备缓存</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./Demo<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>setup<span class="w"> </span>./Demo<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 使用 copy 模式，把共享缓存复制到项目里</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./DemoCopy<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>copy
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>setup<span class="w"> </span>./DemoCopy<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>copy
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># 后续项目直接复用共享依赖缓存</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./DemoFast<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>symlink
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>setup<span class="w"> </span>./DemoFast<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--dependency-mode<span class="w"> </span>symlink
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># 创建不依赖 mathlib 的纯 Lean 项目</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>leanup<span class="w"> </span>setup<span class="w"> </span>./PlainDemo<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--no-mathlib
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>setup<span class="w"> </span>./PlainDemo<span class="w"> </span>--lean-version<span class="w"> </span>v4.27.0<span class="w"> </span>--no-mathlib
 </code></pre></div>
 <p>说明：</p>
 <ul>
@@ -784,32 +806,35 @@
 </ul>
 <h3 id="mathlib">管理 mathlib 缓存</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 查看 LeanUp 已有缓存版本</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>leanup<span class="w"> </span>cache<span class="w"> </span>list
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>list<span class="w"> </span>--local
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 查看远端服务已有缓存版本和下载 URL</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>leanup<span class="w"> </span>cache<span class="w"> </span>list<span class="w"> </span>--base-url<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>list<span class="w"> </span>--remote<span class="w"> </span>http://127.0.0.1:8000
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># 在 tempfile 临时工作目录中创建某个 Lean 版本的共享 mathlib packages 缓存</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>leanup<span class="w"> </span>cache<span class="w"> </span>create<span class="w"> </span>v4.22.0
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>create<span class="w"> </span>v4.22.0
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># 将本地缓存里的 packages/&lt;version&gt;/packages 打包成 archives/&lt;version&gt;/packages.tar.gz</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>leanup<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>v4.22.0
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>pack<span class="w"> </span>v4.22.0
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># 或者使用指定缓存根</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>leanup<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># 将本地 archive 解压回 packages 目录</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>unpack<span class="w"> </span>v4.22.0
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># 启动缓存服务：/f/... 给 lake exe cache get，/packages/... 给 leanup cache get</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>leanup<span class="w"> </span>cache<span class="w"> </span>serve
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># 或者使用指定缓存根</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>pack<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># 让 mathlib 官方 cache client 改走 LeanUp 服务</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="nb">export</span><span class="w"> </span><span class="nv">MATHLIB_CACHE_GET_URL</span><span class="o">=</span>http://127.0.0.1:8000
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>lake<span class="w"> </span>exe<span class="w"> </span>cache<span class="w"> </span>get
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="c1"># 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>leanup<span class="w"> </span>cache<span class="w"> </span>get<span class="w"> </span>v4.22.0<span class="w"> </span>--base-url<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># 启动缓存服务：/f/... 给 lake exe cache get，/packages/... 给 leanup cache get</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>leanup<span class="w"> </span>serve
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="c1"># 让 mathlib 官方 cache client 改走 LeanUp 服务</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="nb">export</span><span class="w"> </span><span class="nv">MATHLIB_CACHE_GET_URL</span><span class="o">=</span>http://127.0.0.1:8000
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>lake<span class="w"> </span>exe<span class="w"> </span>cache<span class="w"> </span>get
 <a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># 如需关闭并发压缩，可以显式禁用 pigz</span>
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>leanup<span class="w"> </span>cache<span class="w"> </span>pack<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache<span class="w"> </span>--no-pigz
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>get<span class="w"> </span>v4.22.0<span class="w"> </span>--remote<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="c1"># 如需关闭并发压缩，可以显式禁用 pigz</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>leanup<span class="w"> </span>mathlib<span class="w"> </span>pack<span class="w"> </span>v4.22.0<span class="w"> </span>--output-dir<span class="w"> </span>/path/to/cache<span class="w"> </span>--no-pigz
 </code></pre></div>
 <ul>
 <li>默认会在本机存在 <code>pigz</code> 时启用并发压缩</li>
@@ -822,124 +847,146 @@
 <li><code>leanup cache get</code> 从远端下载 <code>packages.tar.gz</code> 到 <code>mathlib/archives/&lt;version&gt;/packages.tar.gz</code>，并解压到 <code>mathlib/packages/&lt;version&gt;/packages</code></li>
 <li><code>leanup cache pack</code> 和 <code>leanup cache get</code> 都先写临时文件 / 临时目录，成功后再原子替换正式路径，避免中断损坏缓存</li>
 </ul>
-<h3 id="_6">仓库管理</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 安装 Mathlib</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 安装特定分支或标签</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>-b<span class="w"> </span>v4.14.0
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># 安装到自定义目录</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>Lean-zh/leanup<span class="w"> </span>-d<span class="w"> </span>/path/to/custom/dir
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># 控制构建选项</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>--lake-build
+<h3 id="toolchains">管理 toolchains 缓存</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 查看本地和远端 toolchain 归档</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>list<span class="w"> </span>--local
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>list<span class="w"> </span>--remote<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># 打包裸的 .elan 基础目录，不包含 toolchains/</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>pack
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># 打包、解压、下载具体 Lean toolchain</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>pack<span class="w"> </span>v4.28.0
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>unpack<span class="w"> </span>v4.28.0
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>get<span class="w"> </span>v4.28.0<span class="w"> </span>--remote<span class="w"> </span>http://127.0.0.1:8000
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># 交互式</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>-i
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="c1"># 指定要构建的包</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>Lean-zh/repl<span class="w"> </span>--build-packages<span class="w"> </span><span class="s2">&quot;REPL,REPL.Main&quot;</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1"># 列出已安装的仓库</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="c1"># 在指定目录中搜索仓库</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--search-dir<span class="w"> </span>/path/to/repos
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
-<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="c1"># 按名称过滤仓库</span>
-<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>-n<span class="w"> </span>mathlib
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># 初始化 .elan：默认走官方 elan；加 url 时下载 base .elan 归档</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>init
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>leanup<span class="w"> </span>toolchains<span class="w"> </span>init<span class="w"> </span>--url<span class="w"> </span>http://127.0.0.1:8000
+</code></pre></div>
+<ul>
+<li>toolchain archives 单独存储在 <code>LEANUP_CACHE_DIR/toolchains/archives</code></li>
+<li>解压后的目录语义沿用 <code>.elan/</code></li>
+<li>所有下载、压缩、解压都先写临时文件 / 临时目录，成功后再原子替换正式路径</li>
+</ul>
+<h3 id="_6">仓库管理</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 安装 Mathlib</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 安装特定分支或标签</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>-b<span class="w"> </span>v4.14.0
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># 安装到自定义目录</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>Lean-zh/leanup<span class="w"> </span>-d<span class="w"> </span>/path/to/custom/dir
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># 控制构建选项</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>--lake-build
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="c1"># 交互式</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>leanprover-community/mathlib4<span class="w"> </span>-i
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="c1"># 指定要构建的包</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>leanup<span class="w"> </span>repo<span class="w"> </span>install<span class="w"> </span>Lean-zh/repl<span class="w"> </span>--build-packages<span class="w"> </span><span class="s2">&quot;REPL,REPL.Main&quot;</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="c1"># 列出已安装的仓库</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="c1"># 在指定目录中搜索仓库</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>--search-dir<span class="w"> </span>/path/to/repos
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="c1"># 按名称过滤仓库</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>leanup<span class="w"> </span>repo<span class="w"> </span>list<span class="w"> </span>-n<span class="w"> </span>mathlib
 </code></pre></div>
 <h2 id="installconfig">使用 InstallConfig</h2>
 <p><code>InstallConfig</code> 类提供了编程方式配置仓库安装：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">InstallConfig</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 创建安装配置</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">InstallConfig</span><span class="p">(</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;leanprover-community/mathlib4&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">source</span><span class="o">=</span><span class="s2">&quot;https://github.com&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">branch</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">dest_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/path/to/repos&quot;</span><span class="p">),</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">dest_name</span><span class="o">=</span><span class="s2">&quot;mathlib4_main&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">lake_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">lake_build</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">build_packages</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;REPL&quot;</span><span class="p">,</span> <span class="s2">&quot;REPL.Main&quot;</span><span class="p">],</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">override</span><span class="o">=</span><span class="kc">False</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="p">)</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="c1"># 检查配置是否有效</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">is_valid</span><span class="p">:</span>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;将安装到: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">dest_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="c1"># 执行安装</span>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="n">config</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="c1"># 更新配置</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="n">new_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">branch</span><span class="o">=</span><span class="s2">&quot;v4.3.0&quot;</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">InstallConfig</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># 创建安装配置</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">config</span> <span class="o">=</span> <span class="n">InstallConfig</span><span class="p">(</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;leanprover-community/mathlib4&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">source</span><span class="o">=</span><span class="s2">&quot;https://github.com&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="n">branch</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">dest_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/path/to/repos&quot;</span><span class="p">),</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="n">dest_name</span><span class="o">=</span><span class="s2">&quot;mathlib4_main&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    <span class="n">lake_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    <span class="n">lake_build</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="n">build_packages</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;REPL&quot;</span><span class="p">,</span> <span class="s2">&quot;REPL.Main&quot;</span><span class="p">],</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="n">override</span><span class="o">=</span><span class="kc">False</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="c1"># 检查配置是否有效</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">is_valid</span><span class="p">:</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;将安装到: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">dest_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="c1"># 执行安装</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="n">config</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="c1"># 更新配置</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="n">new_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">branch</span><span class="o">=</span><span class="s2">&quot;v4.3.0&quot;</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="repomanager">使用 RepoManager</h2>
 <p><code>RepoManager</code> 类提供了管理目录和 git 仓库的功能：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">RepoManager</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># 创建仓库管理器</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">repo</span> <span class="o">=</span> <span class="n">RepoManager</span><span class="p">(</span><span class="s2">&quot;/path/to/your/directory&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># 检查是否为 git 仓库</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="k">if</span> <span class="n">repo</span><span class="o">.</span><span class="n">is_gitrepo</span><span class="p">:</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;这是一个 git 仓库&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">status</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">git_status</span><span class="p">()</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;当前分支: </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;是否有修改: </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;is_dirty&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="c1"># 克隆仓库</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="n">success</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">clone_from</span><span class="p">(</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="s2">&quot;https://github.com/owner/repo.git&quot;</span><span class="p">,</span> 
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="n">branch</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> 
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="n">depth</span><span class="o">=</span><span class="mi">1</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="p">)</span>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="c1"># 文件操作</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="n">repo</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="n">content</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="n">repo</span><span class="o">.</span><span class="n">edit_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="s2">&quot;universe&quot;</span><span class="p">,</span> <span class="n">use_regex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="c1"># 列出文件和目录</span>
-<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="n">files</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">list_files</span><span class="p">(</span><span class="s2">&quot;*.lean&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="n">dirs</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">list_dirs</span><span class="p">()</span>
-<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>
-<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="c1"># 执行命令</span>
-<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">returncode</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">execute_command</span><span class="p">([</span><span class="s2">&quot;ls&quot;</span><span class="p">,</span> <span class="s2">&quot;-la&quot;</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">RepoManager</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># 创建仓库管理器</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">repo</span> <span class="o">=</span> <span class="n">RepoManager</span><span class="p">(</span><span class="s2">&quot;/path/to/your/directory&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># 检查是否为 git 仓库</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="k">if</span> <span class="n">repo</span><span class="o">.</span><span class="n">is_gitrepo</span><span class="p">:</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;这是一个 git 仓库&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">status</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">git_status</span><span class="p">()</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;当前分支: </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;是否有修改: </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;is_dirty&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># 克隆仓库</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="n">success</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">clone_from</span><span class="p">(</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="s2">&quot;https://github.com/owner/repo.git&quot;</span><span class="p">,</span> 
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="n">branch</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> 
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="n">depth</span><span class="o">=</span><span class="mi">1</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">)</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="c1"># 文件操作</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="n">repo</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="n">content</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="n">repo</span><span class="o">.</span><span class="n">edit_file</span><span class="p">(</span><span class="s2">&quot;test.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="s2">&quot;universe&quot;</span><span class="p">,</span> <span class="n">use_regex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="c1"># 列出文件和目录</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="n">files</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">list_files</span><span class="p">(</span><span class="s2">&quot;*.lean&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="n">dirs</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">list_dirs</span><span class="p">()</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="c1"># 执行命令</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">returncode</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">execute_command</span><span class="p">([</span><span class="s2">&quot;ls&quot;</span><span class="p">,</span> <span class="s2">&quot;-la&quot;</span><span class="p">])</span>
 </code></pre></div>
 <h2 id="leanrepo-lean">使用 LeanRepo 管理 Lean 项目</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeanRepo</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># 创建 Lean 仓库管理器</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">lean_repo</span> <span class="o">=</span> <span class="n">LeanRepo</span><span class="p">(</span><span class="s2">&quot;/path/to/lean/project&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># 获取项目信息</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">info</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">get_project_info</span><span class="p">()</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lean 版本: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;lean_version&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;有 lakefile.toml: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lakefile_toml&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;有 lakefile.lean: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lakefile_lean&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;有 lake-manifest.json: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lake_manifest&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;构建目录存在: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;build_dir_exists&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1"># Lake 操作</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_init</span><span class="p">(</span><span class="s2">&quot;my_project&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;lean&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_update</span><span class="p">()</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_build</span><span class="p">(</span><span class="s2">&quot;MyTarget&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_env_lean</span><span class="p">(</span><span class="s2">&quot;Main.lean&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_clean</span><span class="p">()</span>
-<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_test</span><span class="p">()</span>
-<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
-<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="c1"># 使用配置安装</span>
-<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="n">config</span> <span class="o">=</span> <span class="n">InstallConfig</span><span class="p">(</span>
-<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>    <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;leanprover-community/mathlib4&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>    <span class="n">lake_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>    <span class="n">lake_build</span><span class="o">=</span><span class="kc">False</span>
-<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="p">)</span>
-<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">leanup.repo.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeanRepo</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># 创建 Lean 仓库管理器</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">lean_repo</span> <span class="o">=</span> <span class="n">LeanRepo</span><span class="p">(</span><span class="s2">&quot;/path/to/lean/project&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1"># 获取项目信息</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">info</span> <span class="o">=</span> <span class="n">lean_repo</span><span class="o">.</span><span class="n">get_project_info</span><span class="p">()</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lean 版本: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;lean_version&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;有 lakefile.toml: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lakefile_toml&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;有 lakefile.lean: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lakefile_lean&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;有 lake-manifest.json: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;has_lake_manifest&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;构建目录存在: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;build_dir_exists&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="c1"># Lake 操作</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_init</span><span class="p">(</span><span class="s2">&quot;my_project&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;lean&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_update</span><span class="p">()</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_build</span><span class="p">(</span><span class="s2">&quot;MyTarget&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_env_lean</span><span class="p">(</span><span class="s2">&quot;Main.lean&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_clean</span><span class="p">()</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">lake_test</span><span class="p">()</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="c1"># 使用配置安装</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="n">config</span> <span class="o">=</span> <span class="n">InstallConfig</span><span class="p">(</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>    <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;leanprover-community/mathlib4&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    <span class="n">lake_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>    <span class="n">lake_build</span><span class="o">=</span><span class="kc">False</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="p">)</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="n">lean_repo</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 </code></pre></div>
 
 
