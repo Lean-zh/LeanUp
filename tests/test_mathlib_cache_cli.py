@@ -22,7 +22,7 @@ def test_mathlib_cache_pack_archives_current_repo(tmp_path):
     result = runner.invoke(
         cli,
         [
-            "cache",
+            "mathlib",
             "pack",
             "v4.22.0",
             "--output-dir",
@@ -52,7 +52,7 @@ def test_mathlib_subcommand_pack_defaults_to_mathlib_cache_root(tmp_path):
             sys.executable,
             "-c",
             "from leanup.cli import cli; cli()",
-            "cache",
+            "mathlib",
             "pack",
             "v4.28.0",
             "--no-pigz",
@@ -80,7 +80,7 @@ def test_mathlib_pack_output_is_listable_via_server_url(tmp_path):
     pack_result = runner.invoke(
         cli,
         [
-            "cache",
+            "mathlib",
             "pack",
             "v4.28.0",
             "--output-dir",
@@ -96,11 +96,10 @@ def test_mathlib_pack_output_is_listable_via_server_url(tmp_path):
     command = [
         sys.executable,
         "-c",
-        "from leanup.cli import cli; cli()",
-        "cache",
-        "serve",
-        "--host",
-        "127.0.0.1",
+            "from leanup.cli import cli; cli()",
+            "serve",
+            "--host",
+            "127.0.0.1",
         "--port",
         "18083",
         "--ltar-root",
@@ -122,7 +121,7 @@ def test_mathlib_pack_output_is_listable_via_server_url(tmp_path):
             proc.stdout.readline()
         time.sleep(1)
         base_url = "http://127.0.0.1:18083"
-        list_result = runner.invoke(cli, ["cache", "list", "--base-url", base_url])
+        list_result = runner.invoke(cli, ["mathlib", "list", "--remote", base_url])
     finally:
         proc.terminate()
         proc.wait(timeout=5)
@@ -141,7 +140,7 @@ def test_mathlib_cache_pack_follows_root_packages_symlink(tmp_path):
     result = runner.invoke(
         cli,
         [
-            "cache",
+            "mathlib",
             "pack",
             "v4.29.0",
             "--output-dir",
@@ -178,7 +177,7 @@ def test_mathlib_cache_pack_passes_pigz_option(monkeypatch, tmp_path):
     result = runner.invoke(
         cli,
         [
-            "cache",
+            "mathlib",
             "pack",
             "v4.22.0",
             "--output-dir",
@@ -213,7 +212,7 @@ def test_mathlib_cache_pack_uses_pigz_by_default(monkeypatch, tmp_path):
     result = runner.invoke(
         cli,
         [
-            "cache",
+            "mathlib",
             "pack",
             "v4.22.0",
             "--output-dir",
@@ -239,9 +238,9 @@ def test_mathlib_cache_list_prints_package_urls(monkeypatch, tmp_path):
     result = runner.invoke(
         cli,
         [
-            "cache",
+            "mathlib",
             "list",
-            "--base-url",
+            "--remote",
             "http://127.0.0.1:8000/",
         ],
     )
@@ -265,11 +264,10 @@ def test_mathlib_cache_list_reads_remote_index(tmp_path):
     command = [
         sys.executable,
         "-c",
-        "from leanup.cli import cli; cli()",
-        "cache",
-        "serve",
-        "--host",
-        "127.0.0.1",
+            "from leanup.cli import cli; cli()",
+            "serve",
+            "--host",
+            "127.0.0.1",
         "--port",
         "18081",
         "--ltar-root",
@@ -293,7 +291,7 @@ def test_mathlib_cache_list_reads_remote_index(tmp_path):
         base_url = "http://127.0.0.1:18081"
         result = runner.invoke(
             cli,
-            ["cache", "list", "--base-url", base_url],
+            ["mathlib", "list", "--remote", base_url],
         )
     finally:
         proc.terminate()
@@ -319,7 +317,7 @@ def test_mathlib_cache_list_with_base_url_does_not_fallback_to_local(monkeypatch
 
     result = runner.invoke(
         cli,
-        ["cache", "list", "--base-url", "http://127.0.0.1:8000"],
+        ["mathlib", "list", "--remote", "http://127.0.0.1:8000"],
     )
 
     assert result.exit_code == 0
@@ -329,7 +327,7 @@ def test_mathlib_cache_list_with_base_url_does_not_fallback_to_local(monkeypatch
 def test_cache_pack_reports_missing_project_packages(tmp_path):
     runner = CliRunner()
 
-    result = runner.invoke(cli, ["cache", "pack", "v4.28.0", "--output-dir", str(tmp_path)])
+    result = runner.invoke(cli, ["mathlib", "pack", "v4.28.0", "--output-dir", str(tmp_path)])
 
     assert result.exit_code == 1
     assert "Run 'leanup cache create v4.28.0' or 'leanup cache get v4.28.0 --base-url ...' first." in result.output
@@ -357,11 +355,10 @@ def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
     command = [
         sys.executable,
         "-c",
-        "from leanup.cli import cli; cli()",
-        "cache",
-        "serve",
-        "--host",
-        "127.0.0.1",
+            "from leanup.cli import cli; cli()",
+            "serve",
+            "--host",
+            "127.0.0.1",
         "--port",
         "18082",
         "--ltar-root",
@@ -383,12 +380,12 @@ def test_cache_get_downloads_and_extracts_packages_archive(tmp_path):
             proc.stdout.readline()
         time.sleep(1)
         result = runner.invoke(
-            cli,
-            [
-                "cache",
-                "get",
-                "v4.22.0",
-                "--base-url",
+                cli,
+                [
+                    "mathlib",
+                    "get",
+                    "v4.22.0",
+                "--remote",
                 "http://127.0.0.1:18082",
                 "--cache-dir",
                 str(tmp_path / "local-cache"),
@@ -428,7 +425,7 @@ def test_cache_pack_honors_cleanup_cache_dir_env_in_subprocess(tmp_path):
         sys.executable,
         "-c",
         "from leanup.cli import cli; cli()",
-        "cache",
+        "mathlib",
         "pack",
         "v4.22.0",
         "--no-pigz",
@@ -458,7 +455,6 @@ def test_cache_serve_honors_explicit_roots_in_subprocess(tmp_path):
         sys.executable,
         "-c",
         "from leanup.cli import cli; cli()",
-        "cache",
         "serve",
         "--host",
         "127.0.0.1",
@@ -516,7 +512,7 @@ def test_cache_create_refreshes_shared_cache_and_archive(monkeypatch, tmp_path):
 
     monkeypatch.setattr(MathlibCacheManager, "__init__", fake_cache_init)
 
-    result = runner.invoke(cli, ["cache", "create", "v4.22.0", "--no-pigz"])
+    result = runner.invoke(cli, ["mathlib", "create", "v4.22.0", "--no-pigz"])
 
     expected_packages = custom_cache_root / "packages" / "v4.22.0" / "packages"
     expected_archive = custom_cache_root / "archives" / "v4.22.0" / "packages.tar.gz"
@@ -525,3 +521,25 @@ def test_cache_create_refreshes_shared_cache_and_archive(monkeypatch, tmp_path):
     assert expected_archive.exists()
     assert str(expected_packages) in result.output
     assert str(expected_archive) in result.output
+
+
+def test_mathlib_unpack_extracts_local_archive(tmp_path):
+    runner = CliRunner()
+    cache_root = tmp_path / "cache-root"
+    archive_dir = cache_root / "archives" / "v4.28.0"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    source_packages = tmp_path / "source-packages" / "mathlib"
+    source_packages.mkdir(parents=True, exist_ok=True)
+    (source_packages / "README.md").write_text("cached\n", encoding="utf-8")
+    archive = archive_dir / "packages.tar.gz"
+    MathlibCacheManager(cache_root=cache_root).pack_packages_archive(source_packages.parent, archive)
+
+    result = runner.invoke(
+        cli,
+        ["mathlib", "unpack", "v4.28.0", "--cache-dir", str(cache_root)],
+    )
+
+    assert result.exit_code == 0
+    extracted = cache_root / "packages" / "v4.28.0" / "packages" / "mathlib" / "README.md"
+    assert extracted.read_text(encoding="utf-8") == "cached\n"

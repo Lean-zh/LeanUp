@@ -16,8 +16,8 @@ logger = setup_logger("elan_manager")
 class ElanManager:
     """Elan toolchain manager"""
 
-    def __init__(self):
-        self.elan_home = Path(os.environ.get("ELAN_HOME", Path.home() / ".elan"))
+    def __init__(self, elan_home: Path | None = None):
+        self.elan_home = Path(elan_home or os.environ.get("ELAN_HOME", Path.home() / ".elan"))
         self.elan_bin_dir = self.elan_home / "bin"
         self._elan_exe = None
 
@@ -133,7 +133,9 @@ class ElanManager:
                     logger.info("Running elan installation script...")
 
                     cmd = ["sh", str(installer_path), "-y"]
-                output, error, code = execute_command(cmd, cwd=str(temp_dir))
+                env = os.environ.copy()
+                env["ELAN_HOME"] = str(self.elan_home)
+                output, error, code = execute_command(cmd, cwd=str(temp_dir), env=env)
                 if code != 0:
                     logger.error(f"Installation failed: {error}")
                     return False

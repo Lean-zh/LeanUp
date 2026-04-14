@@ -88,23 +88,23 @@ leanup repo list -n mathlib
 
 ### 快速初始化项目
 
-`leanup setup` 用于快速创建一个固定 Lean 版本的项目，并按需要为 `mathlib` 依赖准备共享缓存。
+`leanup mathlib setup` 用于快速创建一个固定 Lean 版本的项目，并按需要为 `mathlib` 依赖准备共享缓存。
 
 ```bash
 # 创建一个带 mathlib 的项目，默认有缓存就复用，没有缓存就自动准备缓存
-leanup setup ./Demo --lean-version v4.27.0
+leanup mathlib setup ./Demo --lean-version v4.27.0
 
 # 使用 copy 模式，把共享缓存复制到项目里
-leanup setup ./DemoCopy --lean-version v4.27.0 --dependency-mode copy
+leanup mathlib setup ./DemoCopy --lean-version v4.27.0 --dependency-mode copy
 
 # 后续同版本项目可直接软链接复用缓存
-leanup setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
+leanup mathlib setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
 
 # 创建不带 mathlib 的纯 Lean 项目
-leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
+leanup mathlib setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 
 # 指定 Lake 项目名，并覆盖已存在目录
-leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
+leanup mathlib setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 ```
 
 规则说明：
@@ -119,34 +119,37 @@ leanup setup ./Demo --lean-version v4.27.0 --name MyDemo --force
 
 ```bash
 # 查看 LeanUp 已有缓存版本
-leanup cache list
+leanup mathlib list --local
 
 # 查看远端服务已有缓存版本和下载 URL
-leanup cache list --base-url http://127.0.0.1:8000
+leanup mathlib list --remote http://127.0.0.1:8000
 
 # 在临时目录创建某个 Lean 版本对应的共享 mathlib packages 缓存
-leanup cache create v4.22.0
+leanup mathlib create v4.22.0
 
 # 将本地缓存里的 packages/<version>/packages 打包成 archives/<version>/packages.tar.gz
-leanup cache pack v4.22.0
+leanup mathlib pack v4.22.0
+
+# 将本地 archive 解压回 packages 目录
+leanup mathlib unpack v4.22.0
 
 # 或者使用指定缓存根
-leanup cache pack v4.22.0 --output-dir /path/to/cache
+leanup mathlib pack v4.22.0 --output-dir /path/to/cache
 
 # 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根
-leanup cache get v4.22.0 --base-url http://127.0.0.1:8000
+leanup mathlib get v4.22.0 --remote http://127.0.0.1:8000
 
 # 启动本地缓存服务：
 # - /f/... 路由给 lake exe cache get 使用
 # - /packages/... 路由给 leanup cache get 使用
-leanup cache serve
+leanup serve
 
 # 让 mathlib 官方 cache client 改走 LeanUp 服务
 export MATHLIB_CACHE_GET_URL=http://127.0.0.1:8000
 lake exe cache get
 
 # 如需关闭并发压缩，可以显式禁用 pigz
-leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
+leanup mathlib pack v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
 - 默认会在本机存在 `pigz` 时启用并发压缩
@@ -157,6 +160,36 @@ leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
 - `leanup cache get` 会下载远端 `packages.tar.gz` 到 `mathlib/archives/<version>/packages.tar.gz`，并解压到 `mathlib/packages/<version>/packages`
 - `leanup cache get` 和 `leanup cache pack` 都通过临时文件 / 临时目录完成后再原子替换，避免中途中断破坏缓存
 - `leanup cache serve` 使用 FastAPI/uvicorn 提供服务，并暴露 `/packages/mathlib/index.json` 让其他机器列出远端可用版本
+
+### 管理 toolchains 缓存
+
+```bash
+# 查看本地 toolchain 归档
+leanup toolchains list --local
+
+# 查看远端 toolchain 归档
+leanup toolchains list --remote http://127.0.0.1:8000
+
+# 不指定版本时，打包裸的 .elan 基础目录，不包含 toolchains/
+leanup toolchains pack
+
+# 指定版本时，打包 .elan/toolchains 中对应的 Lean toolchain
+leanup toolchains pack v4.28.0
+
+# 从本地归档解压 toolchain 到 .elan/toolchains
+leanup toolchains unpack v4.28.0
+
+# 初始化 .elan：不加 url 时走官方 elan 安装；加 url 时下载 base .elan 归档
+leanup toolchains init
+leanup toolchains init --url http://127.0.0.1:8000
+
+# 从远端下载并解压指定 toolchain
+leanup toolchains get v4.28.0 --remote http://127.0.0.1:8000
+```
+
+- toolchain archives 单独存储在 `LEANUP_CACHE_DIR/toolchains/archives`
+- 解压后的目录语义沿用 `.elan/`
+- 所有下载、压缩、解压都先写临时文件 / 临时目录，成功后再原子替换正式路径
 
 ### 交互式安装
 

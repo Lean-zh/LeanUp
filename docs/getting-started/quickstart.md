@@ -24,16 +24,16 @@ leanup --help
 
 ```bash
 # 创建一个带 mathlib 的 Lean 项目，默认有缓存就复用，没有缓存就自动准备缓存
-leanup setup ./Demo --lean-version v4.27.0
+leanup mathlib setup ./Demo --lean-version v4.27.0
 
 # 使用 copy 模式，把共享缓存复制到项目里
-leanup setup ./DemoCopy --lean-version v4.27.0 --dependency-mode copy
+leanup mathlib setup ./DemoCopy --lean-version v4.27.0 --dependency-mode copy
 
 # 后续项目直接复用共享依赖缓存
-leanup setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
+leanup mathlib setup ./DemoFast --lean-version v4.27.0 --dependency-mode symlink
 
 # 创建不依赖 mathlib 的纯 Lean 项目
-leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
+leanup mathlib setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 ```
 
 说明：
@@ -50,32 +50,35 @@ leanup setup ./PlainDemo --lean-version v4.27.0 --no-mathlib
 
 ```bash
 # 查看 LeanUp 已有缓存版本
-leanup cache list
+leanup mathlib list --local
 
 # 查看远端服务已有缓存版本和下载 URL
-leanup cache list --base-url http://127.0.0.1:8000
+leanup mathlib list --remote http://127.0.0.1:8000
 
 # 在 tempfile 临时工作目录中创建某个 Lean 版本的共享 mathlib packages 缓存
-leanup cache create v4.22.0
+leanup mathlib create v4.22.0
 
 # 将本地缓存里的 packages/<version>/packages 打包成 archives/<version>/packages.tar.gz
-leanup cache pack v4.22.0
+leanup mathlib pack v4.22.0
+
+# 将本地 archive 解压回 packages 目录
+leanup mathlib unpack v4.22.0
 
 # 或者使用指定缓存根
-leanup cache pack v4.22.0 --output-dir /path/to/cache
+leanup mathlib pack v4.22.0 --output-dir /path/to/cache
 
 # 启动缓存服务：/f/... 给 lake exe cache get，/packages/... 给 leanup cache get
-leanup cache serve
+leanup serve
 
 # 让 mathlib 官方 cache client 改走 LeanUp 服务
 export MATHLIB_CACHE_GET_URL=http://127.0.0.1:8000
 lake exe cache get
 
 # 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根
-leanup cache get v4.22.0 --base-url http://127.0.0.1:8000
+leanup mathlib get v4.22.0 --remote http://127.0.0.1:8000
 
 # 如需关闭并发压缩，可以显式禁用 pigz
-leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
+leanup mathlib pack v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
 - 默认会在本机存在 `pigz` 时启用并发压缩
@@ -87,6 +90,30 @@ leanup cache pack v4.22.0 --output-dir /path/to/cache --no-pigz
 - `leanup cache pack` 从 `mathlib/packages/<version>/packages` 生成 `mathlib/archives/<version>/packages.tar.gz`
 - `leanup cache get` 从远端下载 `packages.tar.gz` 到 `mathlib/archives/<version>/packages.tar.gz`，并解压到 `mathlib/packages/<version>/packages`
 - `leanup cache pack` 和 `leanup cache get` 都先写临时文件 / 临时目录，成功后再原子替换正式路径，避免中断损坏缓存
+
+### 管理 toolchains 缓存
+
+```bash
+# 查看本地和远端 toolchain 归档
+leanup toolchains list --local
+leanup toolchains list --remote http://127.0.0.1:8000
+
+# 打包裸的 .elan 基础目录，不包含 toolchains/
+leanup toolchains pack
+
+# 打包、解压、下载具体 Lean toolchain
+leanup toolchains pack v4.28.0
+leanup toolchains unpack v4.28.0
+leanup toolchains get v4.28.0 --remote http://127.0.0.1:8000
+
+# 初始化 .elan：默认走官方 elan；加 url 时下载 base .elan 归档
+leanup toolchains init
+leanup toolchains init --url http://127.0.0.1:8000
+```
+
+- toolchain archives 单独存储在 `LEANUP_CACHE_DIR/toolchains/archives`
+- 解压后的目录语义沿用 `.elan/`
+- 所有下载、压缩、解压都先写临时文件 / 临时目录，成功后再原子替换正式路径
 
 ### 仓库管理
 
