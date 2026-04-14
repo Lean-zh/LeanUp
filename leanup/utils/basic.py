@@ -35,15 +35,16 @@ def execute_command(command: Union[str, List[str]],
         # Handle string commands
         if isinstance(command, str) and OS_TYPE != 'Windows':
             command = shlex.split(command)
-        process = subprocess.Popen(
-                command,
-                cwd=cwd,
-                stdout=stdout_pipe,
-                stderr=stderr_pipe,
-                shell=OS_TYPE == 'Windows',
-                text=text,
-                env=env,
-            )
+        popen_kwargs = {
+            "cwd": cwd,
+            "stdout": stdout_pipe,
+            "stderr": stderr_pipe,
+            "shell": OS_TYPE == 'Windows',
+            "text": text,
+        }
+        if env is not None:
+            popen_kwargs["env"] = env
+        process = subprocess.Popen(command, **popen_kwargs)
         stdout, stderr = process.communicate(input=input, timeout=timeout)
         returncode = process.returncode
         stdout = stdout or ""
