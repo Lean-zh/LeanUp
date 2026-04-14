@@ -16,7 +16,7 @@ logger = setup_logger("elan_manager")
 class ElanManager:
     """Elan toolchain manager"""
 
-    def __init__(self, elan_home: Path | None = None):
+    def __init__(self, elan_home: Optional[Path] = None):
         self.elan_home = Path(elan_home or os.environ.get("ELAN_HOME", Path.home() / ".elan"))
         self.elan_bin_dir = self.elan_home / "bin"
         self._elan_exe = None

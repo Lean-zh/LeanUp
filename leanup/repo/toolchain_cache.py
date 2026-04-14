@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import tarfile
 import tempfile
+from typing import List, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -17,7 +18,7 @@ logger = setup_logger("toolchain_cache")
 
 
 class ToolchainCacheManager:
-    def __init__(self, cache_root: Path | None = None, elan_home: Path | None = None):
+    def __init__(self, cache_root: Optional[Path] = None, elan_home: Optional[Path] = None):
         self.cache_root = cache_root or (LEANUP_CACHE_DIR / "toolchains")
         self.archives_root = self.cache_root / "archives"
         self.elan_home = elan_home or Path(os.environ.get("ELAN_HOME", Path.home() / ".elan"))
@@ -28,10 +29,10 @@ class ToolchainCacheManager:
     def get_toolchain_archive_path(self, version: str) -> Path:
         return self.archives_root / normalize_lean_version(version) / "toolchain.tar.gz"
 
-    def list_local_versions(self) -> list[str]:
+    def list_local_versions(self) -> List[str]:
         if not self.archives_root.exists():
             return []
-        versions: list[str] = []
+        versions: List[str] = []
         for child in sorted(self.archives_root.iterdir()):
             if child.is_dir() and (child / "toolchain.tar.gz").exists():
                 versions.append(child.name)
@@ -40,7 +41,7 @@ class ToolchainCacheManager:
     def has_local_base_archive(self) -> bool:
         return self.get_base_archive_path().exists()
 
-    def list_remote(self, base_url: str) -> tuple[bool, list[str]]:
+    def list_remote(self, base_url: str) -> Tuple[bool, List[str]]:
         index_url = urljoin(base_url.rstrip("/") + "/", "toolchains/index.json")
         try:
             response = requests.get(index_url, timeout=10)
@@ -65,7 +66,7 @@ class ToolchainCacheManager:
     def download_toolchain_archive(self, version: str, url: str) -> Path:
         return self._download_to(url, self.get_toolchain_archive_path(version))
 
-    def init_base(self, url: str | None = None) -> Path:
+    def init_base(self, url: Optional[str] = None) -> Path:
         if url:
             archive = self.download_base_archive(self.build_base_url(url))
             return self.unpack_base_archive(archive)
@@ -96,7 +97,7 @@ class ToolchainCacheManager:
         logger.info(f"Packed base elan archive -> {output_file}")
         return output_file
 
-    def unpack_base_archive(self, archive_path: Path | None = None) -> Path:
+    def unpack_base_archive(self, archive_path: Optional[Path] = None) -> Path:
         archive_path = archive_path or self.get_base_archive_path()
         temp_root = Path(tempfile.mkdtemp(prefix=".elan-base.", dir=self.elan_home.parent))
         try:
@@ -135,7 +136,7 @@ class ToolchainCacheManager:
         logger.info(f"Packed toolchain {version} -> {output_file}")
         return output_file
 
-    def unpack_toolchain_archive(self, version: str, archive_path: Path | None = None) -> Path:
+    def unpack_toolchain_archive(self, version: str, archive_path: Optional[Path] = None) -> Path:
         archive_path = archive_path or self.get_toolchain_archive_path(version)
         temp_root = Path(tempfile.mkdtemp(prefix=".elan-toolchain.", dir=self.elan_home.parent))
         try:
@@ -164,7 +165,7 @@ class ToolchainCacheManager:
         archive = self.download_toolchain_archive(version, self.build_toolchain_url(version, base_url))
         return self.unpack_toolchain_archive(version, archive)
 
-    def _resolve_installed_toolchain_dir(self, version: str) -> Path | None:
+    def _resolve_installed_toolchain_dir(self, version: str) -> Optional[Path]:
         normalized = normalize_lean_version(version)
         toolchains_root = self.elan_home / "toolchains"
         if not toolchains_root.exists():

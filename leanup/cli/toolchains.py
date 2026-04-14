@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import tempfile
+from typing import Optional
 
 import click
 import requests
@@ -27,7 +28,7 @@ def toolchains() -> None:
     default=TOOLCHAIN_CACHE_ROOT,
     help="Toolchain cache root.",
 )
-def list_toolchains(mode: str, remote_url: str | None, cache_dir: Path) -> None:
+def list_toolchains(mode: str, remote_url: Optional[str], cache_dir: Path) -> None:
     manager = ToolchainCacheManager(cache_root=cache_dir)
     if remote_url:
         has_base, versions = manager.list_remote(remote_url)
@@ -62,7 +63,7 @@ def list_toolchains(mode: str, remote_url: str | None, cache_dir: Path) -> None:
     default=Path(tempfile.gettempdir()) / "leanup-elan",
     help="Target .elan directory.",
 )
-def init_toolchains(url: str | None, cache_dir: Path, elan_home: Path) -> None:
+def init_toolchains(url: Optional[str], cache_dir: Path, elan_home: Path) -> None:
     manager = ToolchainCacheManager(cache_root=cache_dir, elan_home=elan_home)
     try:
         result = manager.init_base(url)
@@ -85,7 +86,7 @@ def init_toolchains(url: str | None, cache_dir: Path, elan_home: Path) -> None:
     default=Path(tempfile.gettempdir()) / "leanup-elan",
     help="Source .elan directory.",
 )
-def pack_toolchain(lean_version: str | None, cache_dir: Path, elan_home: Path) -> None:
+def pack_toolchain(lean_version: Optional[str], cache_dir: Path, elan_home: Path) -> None:
     manager = ToolchainCacheManager(cache_root=cache_dir, elan_home=elan_home)
     try:
         archive = manager.pack_base_archive() if lean_version is None else manager.pack_toolchain_archive(lean_version)
