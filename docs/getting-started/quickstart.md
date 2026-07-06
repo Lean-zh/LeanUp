@@ -20,6 +20,33 @@ pip install -e .
 leanup --help
 ```
 
+### 初始化 LeanUp 与 Lean toolchain
+
+```bash
+# 初始化 LeanUp 自己的配置、cache 和 tmp 目录
+leanup init
+
+# 可选：写入默认 LeanUp 资产服务地址
+leanup init --server http://127.0.0.1:8000
+# 或之后再配置
+leanup config set-server http://127.0.0.1:8000
+
+# 安装或恢复基础 elan
+leanup elan install
+leanup elan check
+
+# 安装或恢复指定 Lean toolchain
+leanup lean install v4.30.0
+leanup lean check v4.30.0
+```
+
+说明：
+
+- `leanup init` 只初始化 LeanUp 自己，不安装 elan、Lean 或 Mathlib。
+- `leanup elan ...` 管基础 elan runtime，最终位置仍然是 `ELAN_HOME`。
+- `leanup lean ...` 管 `ELAN_HOME/toolchains` 下的 Lean toolchain。
+- 如果配置的 server 没有对应 archive，`leanup lean install` 可以回退到标准 `elan toolchain install`。
+
 ### 快速创建项目
 
 ```bash
@@ -55,17 +82,20 @@ leanup mathlib list --local
 # 查看远端服务已有缓存版本和下载 URL
 leanup mathlib list --remote http://127.0.0.1:8000
 
-# 在 tempfile 临时工作目录中创建某个 Lean 版本的共享 mathlib packages 缓存
+# 检查一个 Mathlib workspace 是否可以 import Mathlib
+leanup mathlib check v4.30.0 --source /path/to/mathlib-workspace
+
+# 将已验证 workspace 的整个 .lake/ 打包成 LeanUp archive
+leanup mathlib pack v4.30.0 --source /path/to/mathlib-workspace
+
+# 将本地 .lake archive 解压回 LeanUp mathlib cache
+leanup mathlib unpack v4.30.0
+
+# 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根（兼容旧 packages 格式）
+leanup mathlib get v4.22.0 --remote http://127.0.0.1:8000
+
+# 在 tempfile 临时工作目录中创建某个 Lean 版本的共享 mathlib packages 缓存（兼容旧 packages 格式）
 leanup mathlib create v4.22.0
-
-# 将本地缓存里的 packages/<version>/packages 打包成 archives/<version>/packages.tar.gz
-leanup mathlib pack v4.22.0
-
-# 将本地 archive 解压回 packages 目录
-leanup mathlib unpack v4.22.0
-
-# 或者使用指定缓存根
-leanup mathlib pack v4.22.0 --output-dir /path/to/cache
 
 # 启动缓存服务：/f/... 给 lake exe cache get，/packages/... 给 leanup cache get
 leanup serve
@@ -73,22 +103,16 @@ leanup serve
 # 让 mathlib 官方 cache client 改走 LeanUp 服务
 export MATHLIB_CACHE_GET_URL=http://127.0.0.1:8000
 lake exe cache get
-
-# 从 LeanUp cache 服务下载 packages.tar.gz，并解压到本地缓存根
-leanup mathlib get v4.22.0 --remote http://127.0.0.1:8000
-
-# 如需关闭并发压缩，可以显式禁用 pigz
-leanup mathlib pack v4.22.0 --output-dir /path/to/cache --no-pigz
 ```
 
-- 默认会在本机存在 `pigz` 时启用并发压缩
+- `leanup mathlib pack <version> --source <workspace>` 优先打包 `<workspace>/.lake/`，不打包整个 mathlib git repo
+- `leanup mathlib check <version>` 使用 `import Mathlib` 做可用性检查，建议在 pack 前和 unpack 后执行
+- `.lake` archive 写入 `~/.leanup/cache/serve/mathlib/<version>/mathlib-lake.tar.gz`
+- `.lake` unpack 写入 `~/.leanup/cache/local/mathlib/<version>/.lake/`
+- legacy packages cache 入口继续兼容：没有 `.lake` 时仍可使用 `packages/<version>/packages` 与 `archives/<version>/packages.tar.gz`
+- 默认会在本机存在 `pigz` 时启用并发压缩 legacy packages archive
 - 如果系统里没有 `pigz`，命令会自动回退到普通 gzip 打包
-- `--no-pigz` 可显式关闭并发压缩
-- `leanup cache create` 会在临时目录中执行 `lake update` 和 `lake exe cache get`，再把 `.lake/packages` 回填到 `mathlib/packages/<version>/packages` 并生成 `mathlib/archives/<version>/packages.tar.gz`
-- `leanup cache serve` 的 `.ltar` 路由只做 mathlib 兼容分发；`packages.tar.gz` 是 LeanUp 自定义缓存格式
-- `leanup cache serve` 使用 FastAPI/uvicorn，并提供 `/packages/mathlib/index.json` 供其他机器列出远端可用版本
-- `leanup cache pack` 从 `mathlib/packages/<version>/packages` 生成 `mathlib/archives/<version>/packages.tar.gz`
-- `leanup cache get` 从远端下载 `packages.tar.gz` 到 `mathlib/archives/<version>/packages.tar.gz`，并解压到 `mathlib/packages/<version>/packages`
+- `--no-pigz` 可显式关闭 legacy packages 并发压缩
 - `leanup cache pack` 和 `leanup cache get` 都先写临时文件 / 临时目录，成功后再原子替换正式路径，避免中断损坏缓存
 
 ### 管理 toolchains 缓存
