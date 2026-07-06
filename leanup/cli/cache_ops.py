@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
+import tempfile
 
 import click
 import requests
@@ -143,6 +145,42 @@ def serve_cache(host: str, port: int, ltar_root: Path, packages_root: Path) -> N
         run_cache_server(host, port, ltar_root, packages_root)
     except KeyboardInterrupt:
         click.echo("\nStopped.", err=True)
+
+
+@click.command(name="check")
+@click.argument("lean_version")
+@click.option(
+    "--source",
+    type=click.Path(path_type=Path, file_okay=False, dir_okay=True),
+    help="Mathlib workspace to check. Defaults to current directory.",
+)
+@click.option(
+    "--lean-bin",
+    type=click.Path(path_type=Path, dir_okay=False),
+    help="Lean executable to use when lake is unavailable.",
+)
+def mathlib_check(lean_version: str, source: Path | None, lean_bin: Path | None) -> None:
+    """Check that a Mathlib environment can import Mathlib."""
+    normalize_lean_version(lean_version)
+    workspace = source or Path.cwd()
+    if not workspace.exists():
+        raise click.ClickException(f"Workspace not found: {workspace}")
+
+    check_content = "import Mathlib\n\n#check Nat\n"
+    with tempfile.TemporaryDirectory(prefix="leanup-mathlib-check-") as tmp:
+        check_file = Path(tmp) / "CheckMathlib.lean"
+        check_file.write_text(check_content, encoding="utf-8")
+        if (workspace / "lakefile.lean").exists() or (workspace / "lakefile.toml").exists():
+            command = ["lake", "env", "lean", str(check_file)]
+            cwd = workspace
+        else:
+            command = [str(lean_bin or "lean"), str(check_file)]
+            cwd = workspace
+        result = subprocess.run(command, cwd=cwd, text=True, capture_output=True, check=False)
+    if result.returncode != 0:
+        message = result.stderr.strip() or result.stdout.strip() or "import Mathlib check failed"
+        raise click.ClickException(message)
+    click.echo("import Mathlib ok")
 
 
 @click.command(name="create")
