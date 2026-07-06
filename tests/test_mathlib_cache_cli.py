@@ -543,3 +543,46 @@ def test_mathlib_unpack_extracts_local_archive(tmp_path):
     assert result.exit_code == 0
     extracted = cache_root / "packages" / "v4.28.0" / "packages" / "mathlib" / "README.md"
     assert extracted.read_text(encoding="utf-8") == "cached\n"
+
+
+def test_mathlib_pack_source_lake_preserves_symlinks(tmp_path, monkeypatch):
+    runner = CliRunner()
+    leanup_home = tmp_path / "leanup"
+    workspace = tmp_path / "mathlib-workspace"
+    lake = workspace / ".lake"
+    lake.mkdir(parents=True)
+    (lake / "target").write_text("ok\n", encoding="utf-8")
+    (lake / "link").symlink_to("target")
+    monkeypatch.setenv("LEANUP_HOME", str(leanup_home))
+
+    result = runner.invoke(cli, ["mathlib", "pack", "v4.30.0", "--source", str(workspace)])
+
+    archive = leanup_home / "cache" / "serve" / "mathlib" / "v4.30.0" / "mathlib-lake.tar.gz"
+    assert result.exit_code == 0, result.output
+    assert archive.exists()
+    with tarfile.open(archive, "r:gz") as tar:
+        names = tar.getnames()
+        link = tar.getmember(".lake/link")
+    assert ".lake/target" in names
+    assert link.issym()
+
+
+def test_mathlib_unpack_lake_archive_preserves_symlinks(tmp_path, monkeypatch):
+    runner = CliRunner()
+    leanup_home = tmp_path / "leanup"
+    workspace = tmp_path / "mathlib-workspace"
+    lake = workspace / ".lake"
+    lake.mkdir(parents=True)
+    (lake / "target").write_text("ok\n", encoding="utf-8")
+    (lake / "link").symlink_to("target")
+    monkeypatch.setenv("LEANUP_HOME", str(leanup_home))
+
+    pack = runner.invoke(cli, ["mathlib", "pack", "v4.30.0", "--source", str(workspace)])
+    unpack = runner.invoke(cli, ["mathlib", "unpack", "v4.30.0"])
+
+    restored = leanup_home / "cache" / "local" / "mathlib" / "v4.30.0" / ".lake"
+    assert pack.exit_code == 0, pack.output
+    assert unpack.exit_code == 0, unpack.output
+    assert (restored / "target").exists()
+    assert (restored / "link").is_symlink()
+    assert (restored / "link").readlink() == Path("target")
