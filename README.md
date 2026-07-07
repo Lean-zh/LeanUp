@@ -45,12 +45,72 @@ pip install -e .
 # 查看帮助
 leanup --help
 
-# 快速初始化一个 Lean + mathlib 项目
+# 初始化 LeanUp 自己的 home/config/cache 目录
+leanup init
+
+# 可选：配置内网 LeanUp 资产服务
+leanup init --server http://127.0.0.1:8000
+# 等价于之后执行
+leanup config set-server http://127.0.0.1:8000
+
+# 安装或恢复基础 elan，不包含具体 Lean toolchain
+leanup elan install
+
+# 安装或恢复指定 Lean toolchain 到 ELAN_HOME/toolchains
+leanup lean install v4.30.0
+leanup lean check v4.30.0
+
+# 快速初始化一个 Lean + mathlib 项目（兼容旧入口）
 leanup setup ./Demo --lean-version v4.27.0
 
 ```
 
 ## 📖 详细使用指南
+
+### LeanUp 0.3 环境资产 CLI
+
+0.3 开始新增资源式 CLI，用于把环境资产与项目初始化解耦：
+
+```text
+leanup init             # 初始化 ~/.leanup、.env、cache、logs
+leanup elan ...         # 管理基础 elan runtime
+leanup lean ...         # 管理 ELAN_HOME/toolchains 下的 Lean toolchain
+leanup mathlib ...      # 管理 Mathlib cache / .lake 资产
+leanup serve            # 托管 cache/serve 中的 archive 和 index
+```
+
+常见 provider 流程：
+
+```bash
+leanup init --server http://127.0.0.1:8000
+leanup elan check
+leanup elan pack
+leanup lean check v4.30.0
+leanup lean pack v4.30.0
+leanup mathlib check v4.30.0 --source /path/to/mathlib-workspace
+leanup mathlib pack v4.30.0 --source /path/to/mathlib-workspace
+leanup serve --host 0.0.0.0 --port 8000
+```
+
+常见 consumer 流程：
+
+```bash
+leanup init --server http://127.0.0.1:8000
+leanup elan install
+leanup lean install v4.30.0
+leanup lean check v4.30.0
+leanup mathlib get v4.30.0
+leanup mathlib unpack v4.30.0
+leanup mathlib check v4.30.0 --source /path/to/mathlib-workspace
+```
+
+设计边界：
+
+- LeanUp 不维护第二套 runtime elan 或 toolchain；最终仍然使用 `ELAN_HOME` 和 `ELAN_HOME/toolchains`。
+- `leanup elan pack` 会排除 `toolchains/`，只打包基础 elan。
+- `leanup lean pack <version>` 从 `ELAN_HOME/toolchains` 打包指定 Lean toolchain。
+- `leanup mathlib pack <version>` 优先打包已验证 Mathlib workspace 的整个 `.lake/`，不打包整个 mathlib git repo。
+- pack/get/unpack/install 都先写入临时目录或临时文件，校验通过后再原子替换正式位置；符号链接会按 symlink 保留，不会展开成普通文件。
 
 ### 仓库管理
 

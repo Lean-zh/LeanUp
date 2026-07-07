@@ -117,12 +117,16 @@ class MathlibCacheManager:
             return packages_dir
 
         version_root.mkdir(parents=True, exist_ok=True)
-        temp_root = version_root / ".packages.tmp"
-        remove_path(temp_root)
-        shutil.copytree(source_dir, temp_root, symlinks=True)
+        with tempfile.TemporaryDirectory(prefix=".packages.", suffix=".tmp", dir=version_root) as work:
+            temp_root = Path(work)
+            staged_packages = temp_root / "packages"
+            shutil.copytree(source_dir, staged_packages, symlinks=True)
 
-        remove_path(packages_dir)
-        temp_root.replace(packages_dir)
+            final_temp = version_root / ".packages.replace"
+            remove_path(final_temp)
+            staged_packages.replace(final_temp)
+            remove_path(packages_dir)
+            final_temp.replace(packages_dir)
         logger.info(f"Refreshed mathlib cache {normalized} from {source_dir}")
         return packages_dir
 
@@ -195,11 +199,8 @@ class MathlibCacheManager:
 
         parent_dir = target_packages_dir.parent
         parent_dir.mkdir(parents=True, exist_ok=True)
-        temp_root = Path(
-            tempfile.mkdtemp(prefix=f".{target_packages_dir.name}.", suffix=".tmp", dir=parent_dir)
-        )
-
-        try:
+        with tempfile.TemporaryDirectory(prefix=f".{target_packages_dir.name}.", suffix=".tmp", dir=parent_dir) as work:
+            temp_root = Path(work)
             with tarfile.open(archive_file, "r:gz") as tar:
                 self._safe_extract(tar, temp_root)
 
@@ -213,13 +214,9 @@ class MathlibCacheManager:
 
             remove_path(target_packages_dir)
             final_temp.replace(target_packages_dir)
-            remove_path(temp_root)
 
             logger.info(f"Extracted {archive_file} -> {target_packages_dir}")
             return target_packages_dir
-        except Exception:
-            remove_path(temp_root)
-            raise
 
     def fetch_packages(self, version: str, base_url: str) -> Path:
         archive = self.download_archive(version, self.build_archive_url(version, base_url))

@@ -35,7 +35,12 @@ jobs:
       run: |
         # Test basic CLI commands
         leanup --help
+        leanup init --help
+        leanup elan --help
+        leanup lean --help
+        leanup config --help
         leanup mathlib --help
+        leanup mathlib check --help
         leanup serve --help
         leanup toolchains --help
         leanup repo --help

@@ -99,8 +99,8 @@ class ToolchainCacheManager:
 
     def unpack_base_archive(self, archive_path: Optional[Path] = None) -> Path:
         archive_path = archive_path or self.get_base_archive_path()
-        temp_root = Path(tempfile.mkdtemp(prefix=".elan-base.", dir=self.elan_home.parent))
-        try:
+        with tempfile.TemporaryDirectory(prefix=".elan-base.", dir=self.elan_home.parent) as work:
+            temp_root = Path(work)
             with tarfile.open(archive_path, "r:gz") as tar:
                 self._safe_extract(tar, temp_root)
             extracted = temp_root / ".elan"
@@ -111,12 +111,8 @@ class ToolchainCacheManager:
             extracted.replace(final_temp)
             remove_path(self.elan_home)
             final_temp.replace(self.elan_home)
-            remove_path(temp_root)
             logger.info(f"Unpacked base elan archive -> {self.elan_home}")
             return self.elan_home
-        except Exception:
-            remove_path(temp_root)
-            raise
 
     def pack_toolchain_archive(self, version: str) -> Path:
         toolchain_dir = self._resolve_installed_toolchain_dir(version)
@@ -138,8 +134,8 @@ class ToolchainCacheManager:
 
     def unpack_toolchain_archive(self, version: str, archive_path: Optional[Path] = None) -> Path:
         archive_path = archive_path or self.get_toolchain_archive_path(version)
-        temp_root = Path(tempfile.mkdtemp(prefix=".elan-toolchain.", dir=self.elan_home.parent))
-        try:
+        with tempfile.TemporaryDirectory(prefix=".elan-toolchain.", dir=self.elan_home.parent) as work:
+            temp_root = Path(work)
             with tarfile.open(archive_path, "r:gz") as tar:
                 self._safe_extract(tar, temp_root)
             toolchains_root = temp_root / ".elan" / "toolchains"
@@ -154,12 +150,8 @@ class ToolchainCacheManager:
             source_dir.replace(final_temp)
             remove_path(target_dir)
             final_temp.replace(target_dir)
-            remove_path(temp_root)
             logger.info(f"Unpacked toolchain archive -> {target_dir}")
             return target_dir
-        except Exception:
-            remove_path(temp_root)
-            raise
 
     def fetch_toolchain(self, version: str, base_url: str) -> Path:
         archive = self.download_toolchain_archive(version, self.build_toolchain_url(version, base_url))
