@@ -12,6 +12,7 @@ import requests
 from leanup.const import LEANUP_CACHE_DIR
 from leanup.repo.elan import ElanManager
 from leanup.repo.mathlib_cache import normalize_lean_version, remove_path
+from leanup.ops.environment import extract_tar_gz
 from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("toolchain_cache")
@@ -101,8 +102,7 @@ class ToolchainCacheManager:
         archive_path = archive_path or self.get_base_archive_path()
         with tempfile.TemporaryDirectory(prefix=".elan-base.", dir=self.elan_home.parent) as work:
             temp_root = Path(work)
-            with tarfile.open(archive_path, "r:gz") as tar:
-                self._safe_extract(tar, temp_root)
+            extract_tar_gz(archive_path, temp_root)
             extracted = temp_root / ".elan"
             if not extracted.exists():
                 raise ValueError(f"Archive does not contain top-level .elan/ directory: {archive_path}")
@@ -136,8 +136,7 @@ class ToolchainCacheManager:
         archive_path = archive_path or self.get_toolchain_archive_path(version)
         with tempfile.TemporaryDirectory(prefix=".elan-toolchain.", dir=self.elan_home.parent) as work:
             temp_root = Path(work)
-            with tarfile.open(archive_path, "r:gz") as tar:
-                self._safe_extract(tar, temp_root)
+            extract_tar_gz(archive_path, temp_root)
             toolchains_root = temp_root / ".elan" / "toolchains"
             toolchain_dirs = [path for path in toolchains_root.iterdir() if path.is_dir()] if toolchains_root.exists() else []
             if len(toolchain_dirs) != 1:

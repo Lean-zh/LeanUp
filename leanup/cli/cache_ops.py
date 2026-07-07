@@ -8,7 +8,7 @@ import click
 import requests
 
 from leanup.const import LEANUP_CACHE_DIR
-from leanup.ops.environment import safe_extract, tar_directory
+from leanup.ops.environment import extract_tar_gz, tar_directory
 from leanup.paths import cache_dir as leanup_cache_dir
 from leanup.repo.cache_server import run_cache_server
 from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version, remove_path
@@ -31,9 +31,9 @@ def _extract_lake_archive(archive: Path, target_lake: Path) -> Path:
         raise ValueError(f"Archive not found: {archive}")
     parent = target_lake.parent
     parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="leanup-lake-unpack-") as work:
+    with tempfile.TemporaryDirectory(prefix=".leanup-lake-unpack.", dir=parent) as work:
         temp_root = Path(work)
-        safe_extract(archive, temp_root)
+        extract_tar_gz(archive, temp_root)
         extracted = temp_root / ".lake"
         if not extracted.exists() or not extracted.is_dir():
             raise ValueError(f"Archive does not contain top-level .lake/ directory: {archive}")
