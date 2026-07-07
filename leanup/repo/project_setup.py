@@ -12,6 +12,7 @@ from leanup.repo.elan import ElanManager
 from leanup.repo.mathlib_cache import MathlibCacheManager, normalize_lean_version, remove_path
 from leanup.repo.manager import LeanRepo
 from leanup.utils.basic import working_directory
+from leanup.paths import cache_dir as leanup_cache_dir
 from leanup.utils.custom_logger import setup_logger
 
 logger = setup_logger("project_setup")
@@ -108,10 +109,13 @@ class LeanProjectSetup:
             cache_dir = config.mathlib_cache_dir if config.mathlib else None
 
             if config.mathlib and config.resolved_dependency_mode in {"symlink", "copy"}:
-                logger.info("Checking reusable mathlib package cache")
-                used_cache = self._prepare_mathlib_cache(config, project_dir)
-                if used_cache:
-                    self._write_manifest_from_packages(config, project_dir)
+                logger.info("Checking reusable local .lake cache")
+                used_cache = self._prepare_local_lake_cache(config, project_dir)
+                if not used_cache:
+                    logger.info("Checking reusable mathlib package cache")
+                    used_cache = self._prepare_mathlib_cache(config, project_dir)
+                    if used_cache:
+                        self._write_manifest_from_packages(config, project_dir)
 
             if config.mathlib and self._should_run_lake_update(config, project_dir):
                 logger.info("Running lake update")
@@ -364,6 +368,24 @@ class LeanProjectSetup:
         finally:
             if probe.exists():
                 probe.unlink()
+
+    def _local_lake_cache_dir(self, lean_version: str) -> Path:
+        return leanup_cache_dir() / "local" / "mathlib" / normalize_lean_version(lean_version) / ".lake"
+
+    def _prepare_local_lake_cache(self, config: SetupConfig, project_dir: Path) -> bool:
+        lake_cache = self._local_lake_cache_dir(config.lean_version)
+        if not lake_cache.exists():
+            return False
+
+        project_lake = project_dir / ".lake"
+        remove_path(project_lake)
+        project_lake.parent.mkdir(parents=True, exist_ok=True)
+        if config.resolved_dependency_mode == "symlink":
+            project_lake.symlink_to(lake_cache, target_is_directory=True)
+        else:
+            shutil.copytree(lake_cache, project_lake, symlinks=True)
+        self._write_manifest_from_packages(config, project_dir)
+        return True
 
     def _prepare_mathlib_cache(self, config: SetupConfig, project_dir: Path) -> bool:
         cache_dir = self.cache_manager.ensure_local_cache(config.lean_version)

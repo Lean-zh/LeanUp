@@ -2,7 +2,7 @@
 
 __author__ = """Lean-zh Community"""
 __email__ = 'leanprover@outlook.com'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 from .repo import (
     RepoManager,

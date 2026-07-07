@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import os
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -11,6 +12,27 @@ import requests
 
 from leanup.paths import cache_dir, elan_home, ensure_base_dirs, server_url
 from leanup.repo.mathlib_cache import normalize_lean_version, remove_path
+
+
+def has_parallel_gzip() -> bool:
+    return shutil.which("pigz") is not None and shutil.which("tar") is not None
+
+
+def validate_archive_paths(archive: Path, target_dir: Path) -> None:
+    target_dir = target_dir.resolve()
+    with tarfile.open(archive, "r:gz") as tar:
+        for member in tar.getmembers():
+            member_path = (target_dir / member.name).resolve()
+            if not str(member_path).startswith(str(target_dir)):
+                raise ValueError(f"Archive contains unsafe path: {member.name}")
+
+
+def extract_tar_gz(archive: Path, target_dir: Path) -> None:
+    validate_archive_paths(archive, target_dir)
+    if has_parallel_gzip():
+        subprocess.run(["tar", "-I", "pigz", "-xf", str(archive), "-C", str(target_dir)], check=True)
+        return
+    safe_extract(archive, target_dir)
 
 
 def download_to(url: str, output_file: Path) -> Path:
@@ -61,14 +83,25 @@ def tar_directory(source_dir: Path, arcname: str, output_file: Path, exclude: se
     with tempfile.NamedTemporaryFile(dir=output_file.parent, prefix=f".{output_file.name}.", suffix=".tmp", delete=False) as handle:
         temp_output = Path(handle.name)
     try:
-        with tarfile.open(temp_output, "w:gz", dereference=False) as tar:
-            if exclude:
-                for child in sorted(source_dir.iterdir()):
-                    if child.name in exclude:
-                        continue
-                    tar.add(child, arcname=f"{arcname}/{child.name}", recursive=True)
-            else:
-                tar.add(source_dir, arcname=arcname, recursive=True)
+        if exclude or not has_parallel_gzip():
+            with tarfile.open(temp_output, "w:gz", dereference=False) as tar:
+                if exclude:
+                    for child in sorted(source_dir.iterdir()):
+                        if child.name in exclude:
+                            continue
+                        tar.add(child, arcname=f"{arcname}/{child.name}", recursive=True)
+                else:
+                    tar.add(source_dir, arcname=arcname, recursive=True)
+        else:
+            subprocess.run(
+                ["tar", "-I", "pigz", "-cf", str(temp_output), "-C", str(source_dir.parent), "--", source_dir.name],
+                check=True,
+            )
+            # Preserve the requested archive root name. External tar is only used when arcname equals source name or .lake.
+            if arcname != source_dir.name:
+                remove_path(temp_output)
+                with tarfile.open(temp_output, "w:gz", dereference=False) as tar:
+                    tar.add(source_dir, arcname=arcname, recursive=True)
         temp_output.replace(output_file)
         return output_file
     except Exception:
@@ -117,9 +150,10 @@ def get_elan(server: str | None = None) -> Path:
 def unpack_elan(archive: Path | None = None, target_home: Path | None = None) -> Path:
     archive_path = archive or elan_archive_path()
     target = target_home or elan_home()
-    with tempfile.TemporaryDirectory(prefix="leanup-elan-unpack-") as work:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".leanup-elan-unpack.", dir=target.parent) as work:
         work_root = Path(work)
-        safe_extract(archive_path, work_root)
+        extract_tar_gz(archive_path, work_root)
         extracted = work_root / ".elan"
         if not extracted.exists():
             raise ValueError(f"Archive does not contain .elan/: {archive_path}")
@@ -160,9 +194,10 @@ def get_lean(version: str, server: str | None = None) -> Path:
 def unpack_lean(version: str, archive: Path | None = None, target_home: Path | None = None) -> Path:
     archive_path = archive or lean_archive_path(version)
     home = target_home or elan_home()
-    with tempfile.TemporaryDirectory(prefix="leanup-lean-unpack-") as work:
+    (home / "toolchains").mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".leanup-lean-unpack.", dir=home / "toolchains") as work:
         work_root = Path(work)
-        safe_extract(archive_path, work_root)
+        extract_tar_gz(archive_path, work_root)
         toolchains_root = work_root / ".elan" / "toolchains"
         candidates = [path for path in toolchains_root.iterdir() if path.is_dir()] if toolchains_root.exists() else []
         if len(candidates) != 1:
