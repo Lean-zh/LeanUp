@@ -57,9 +57,6 @@ def config_dir() -> Path:
     return Path(get_config_value("LEANUP_CONFIG_DIR", home / "config") or home / "config").expanduser()
 
 
-def tmp_dir() -> Path:
-    home = leanup_home()
-    return Path(get_config_value("LEANUP_TMP_DIR", home / "tmp") or home / "tmp").expanduser()
 
 
 def elan_home() -> Path:
@@ -81,7 +78,6 @@ def ensure_base_dirs(home: Path | None = None) -> Path:
         "cache/serve/mathlib",
         "cache/local/mathlib",
         "cache/downloads",
-        "tmp",
         "logs",
         "state/locks",
     ]:
@@ -93,7 +89,6 @@ def ensure_base_dirs(home: Path | None = None) -> Path:
             f"LEANUP_HOME={root}\n"
             f"LEANUP_CACHE_DIR={root / 'cache'}\n"
             f"LEANUP_CONFIG_DIR={root / 'config'}\n"
-            f"LEANUP_TMP_DIR={root / 'tmp'}\n"
             f"LEANUP_ELAN_HOME={Path.home() / '.elan'}\n",
             encoding="utf-8",
         )

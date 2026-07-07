@@ -38,7 +38,21 @@ def test_init_creates_leanup_home(tmp_path):
     assert (home / ".env").exists()
     assert (home / "cache" / "serve" / "elan" / "base").is_dir()
     assert (home / "cache" / "local" / "mathlib").is_dir()
-    assert "LEANUP_SERVER_URL=http://cache.local:8000" in (home / ".env").read_text(encoding="utf-8")
+    assert not (home / "tmp").exists()
+    env_text = (home / ".env").read_text(encoding="utf-8")
+    assert "LEANUP_SERVER_URL=http://cache.local:8000" in env_text
+    assert "LEANUP_TMP_DIR" not in env_text
+
+
+def test_clean_command_is_not_public_cli():
+    runner = CliRunner()
+
+    help_result = runner.invoke(cli, ["--help"])
+    clean_result = runner.invoke(cli, ["clean", "tmp"])
+
+    assert help_result.exit_code == 0, help_result.output
+    assert "clean" not in help_result.output
+    assert clean_result.exit_code != 0
 
 
 def test_elan_pack_excludes_toolchains_and_preserves_symlinks(tmp_path, monkeypatch):
@@ -80,3 +94,24 @@ def test_lean_pack_and_unpack_preserves_toolchain_symlinks(tmp_path, monkeypatch
     assert (restored_toolchain / "bin" / "lean").exists()
     assert (restored_toolchain / "lib-link").is_symlink()
     assert (restored_toolchain / "lib-link").readlink() == Path("lib-target")
+
+def test_resource_unpack_does_not_leave_internal_tmp_dirs(tmp_path, monkeypatch):
+    runner = CliRunner()
+    leanup_home = tmp_path / "leanup"
+    source_home = _create_elan_home(tmp_path)
+    _create_toolchain(source_home)
+    restored_home = tmp_path / "restored-elan"
+    monkeypatch.setenv("LEANUP_HOME", str(leanup_home))
+
+    pack_elan = runner.invoke(cli, ["elan", "pack", "--elan-home", str(source_home)])
+    unpack_elan = runner.invoke(cli, ["elan", "unpack", "--elan-home", str(restored_home)])
+    pack_lean = runner.invoke(cli, ["lean", "pack", "v4.30.0", "--elan-home", str(source_home)])
+    unpack_lean = runner.invoke(cli, ["lean", "unpack", "v4.30.0", "--elan-home", str(restored_home)])
+
+    assert pack_elan.exit_code == 0, pack_elan.output
+    assert unpack_elan.exit_code == 0, unpack_elan.output
+    assert pack_lean.exit_code == 0, pack_lean.output
+    assert unpack_lean.exit_code == 0, unpack_lean.output
+    assert not (leanup_home / "tmp").exists()
+    assert not list(leanup_home.rglob("*unpack*"))
+

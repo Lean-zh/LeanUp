@@ -9,15 +9,13 @@ from urllib.parse import urljoin
 
 import requests
 
-from leanup.paths import cache_dir, elan_home, ensure_base_dirs, server_url, tmp_dir
+from leanup.paths import cache_dir, elan_home, ensure_base_dirs, server_url
 from leanup.repo.mathlib_cache import normalize_lean_version, remove_path
 
 
 def download_to(url: str, output_file: Path) -> Path:
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    work_root = tmp_dir()
-    work_root.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(dir=work_root, prefix=f".{output_file.name}.", suffix=".tmp", delete=False) as handle:
+    with tempfile.NamedTemporaryFile(dir=output_file.parent, prefix=f".{output_file.name}.", suffix=".tmp", delete=False) as handle:
         temp_output = Path(handle.name)
     try:
         with requests.get(url, stream=True, timeout=120) as response:
@@ -60,9 +58,7 @@ def tar_directory(source_dir: Path, arcname: str, output_file: Path, exclude: se
     if not source_dir.exists():
         raise ValueError(f"Source directory not found: {source_dir}")
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    work_root = tmp_dir()
-    work_root.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(dir=work_root, prefix=f".{output_file.name}.", suffix=".tmp", delete=False) as handle:
+    with tempfile.NamedTemporaryFile(dir=output_file.parent, prefix=f".{output_file.name}.", suffix=".tmp", delete=False) as handle:
         temp_output = Path(handle.name)
     try:
         with tarfile.open(temp_output, "w:gz", dereference=False) as tar:
@@ -121,15 +117,13 @@ def get_elan(server: str | None = None) -> Path:
 def unpack_elan(archive: Path | None = None, target_home: Path | None = None) -> Path:
     archive_path = archive or elan_archive_path()
     target = target_home or elan_home()
-    work_root = Path(tempfile.mkdtemp(prefix="elan-unpack-", dir=tmp_dir()))
-    try:
+    with tempfile.TemporaryDirectory(prefix="leanup-elan-unpack-") as work:
+        work_root = Path(work)
         safe_extract(archive_path, work_root)
         extracted = work_root / ".elan"
         if not extracted.exists():
             raise ValueError(f"Archive does not contain .elan/: {archive_path}")
         return atomic_replace_dir(extracted, target)
-    finally:
-        remove_path(work_root)
 
 
 def install_elan(server: str | None = None, target_home: Path | None = None) -> Path:
@@ -166,8 +160,8 @@ def get_lean(version: str, server: str | None = None) -> Path:
 def unpack_lean(version: str, archive: Path | None = None, target_home: Path | None = None) -> Path:
     archive_path = archive or lean_archive_path(version)
     home = target_home or elan_home()
-    work_root = Path(tempfile.mkdtemp(prefix="lean-unpack-", dir=tmp_dir()))
-    try:
+    with tempfile.TemporaryDirectory(prefix="leanup-lean-unpack-") as work:
+        work_root = Path(work)
         safe_extract(archive_path, work_root)
         toolchains_root = work_root / ".elan" / "toolchains"
         candidates = [path for path in toolchains_root.iterdir() if path.is_dir()] if toolchains_root.exists() else []
@@ -175,8 +169,6 @@ def unpack_lean(version: str, archive: Path | None = None, target_home: Path | N
             raise ValueError(f"Archive must contain exactly one toolchain directory: {archive_path}")
         target = home / "toolchains" / candidates[0].name
         return atomic_replace_dir(candidates[0], target)
-    finally:
-        remove_path(work_root)
 
 
 def install_lean(version: str, server: str | None = None, target_home: Path | None = None) -> Path:

@@ -4,7 +4,7 @@
 
 ## 功能特性
 
-- `leanup init`：初始化 LeanUp home、`.env`、cache、tmp、logs 等基础目录
+- `leanup init`：初始化 LeanUp home、`.env`、cache、logs 等基础目录
 - `leanup elan`：安装、打包、下载、解包和检查基础 elan runtime
 - `leanup lean`：安装、打包、下载、解包和检查 `ELAN_HOME/toolchains` 下的 Lean toolchain
 - `leanup mathlib setup`：快速创建固定 Lean 版本项目，支持 mathlib 共享缓存

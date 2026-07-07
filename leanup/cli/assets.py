@@ -7,8 +7,7 @@ import click
 import requests
 
 from leanup.ops import environment as ops
-from leanup.paths import cache_dir, elan_home, set_env_value, tmp_dir
-from leanup.repo.mathlib_cache import remove_path
+from leanup.paths import cache_dir, elan_home, set_env_value
 
 
 @click.command(name="init")
@@ -16,11 +15,11 @@ from leanup.repo.mathlib_cache import remove_path
 @click.option("--server", help="Default LeanUp server URL to write into .env.")
 @click.option("--dry-run", is_flag=True, help="Show paths without writing.")
 def init_cmd(home: Path | None, server: str | None, dry_run: bool) -> None:
-    """Initialize LeanUp home/config/cache/tmp directories."""
+    """Initialize LeanUp home/config/cache directories."""
     root = home or Path(os.environ.get("LEANUP_HOME", Path.home() / ".leanup")).expanduser()
     if dry_run:
         click.echo(str(root))
-        for rel in [".env", "config", "repos", "cache/serve", "cache/local", "cache/downloads", "tmp", "logs", "state/locks"]:
+        for rel in [".env", "config", "repos", "cache/serve", "cache/local", "cache/downloads", "logs", "state/locks"]:
             click.echo(str(root / rel))
         return
     click.echo(str(ops.init_leanup_home(root, server)))
@@ -45,19 +44,6 @@ def config_show() -> None:
 @click.argument("url")
 def config_set_server(url: str) -> None:
     click.echo(str(set_env_value("LEANUP_SERVER_URL", url)))
-
-
-@click.group(name="clean")
-def clean_cmd() -> None:
-    """Clean LeanUp temporary files."""
-
-
-@clean_cmd.command(name="tmp")
-def clean_tmp() -> None:
-    root = tmp_dir()
-    remove_path(root)
-    root.mkdir(parents=True, exist_ok=True)
-    click.echo(str(root))
 
 
 @click.group(name="elan")

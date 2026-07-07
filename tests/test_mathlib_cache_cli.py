@@ -586,3 +586,5 @@ def test_mathlib_unpack_lake_archive_preserves_symlinks(tmp_path, monkeypatch):
     assert (restored / "target").exists()
     assert (restored / "link").is_symlink()
     assert (restored / "link").readlink() == Path("target")
+    assert not (leanup_home / "tmp").exists()
+    assert not list(restored.parent.glob("*.tmp"))

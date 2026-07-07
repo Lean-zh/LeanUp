@@ -23,7 +23,7 @@ leanup --help
 ### 初始化 LeanUp 与 Lean toolchain
 
 ```bash
-# 初始化 LeanUp 自己的配置、cache 和 tmp 目录
+# 初始化 LeanUp 自己的配置和 cache 目录
 leanup init
 
 # 可选：写入默认 LeanUp 资产服务地址

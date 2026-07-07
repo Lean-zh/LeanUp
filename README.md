@@ -45,7 +45,7 @@ pip install -e .
 # 查看帮助
 leanup --help
 
-# 初始化 LeanUp 自己的 home/config/cache/tmp 目录
+# 初始化 LeanUp 自己的 home/config/cache 目录
 leanup init
 
 # 可选：配置内网 LeanUp 资产服务
@@ -72,7 +72,7 @@ leanup setup ./Demo --lean-version v4.27.0
 0.3 开始新增资源式 CLI，用于把环境资产与项目初始化解耦：
 
 ```text
-leanup init             # 初始化 ~/.leanup、.env、cache、tmp、logs
+leanup init             # 初始化 ~/.leanup、.env、cache、logs
 leanup elan ...         # 管理基础 elan runtime
 leanup lean ...         # 管理 ELAN_HOME/toolchains 下的 Lean toolchain
 leanup mathlib ...      # 管理 Mathlib cache / .lake 资产

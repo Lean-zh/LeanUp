@@ -31,8 +31,8 @@ def _extract_lake_archive(archive: Path, target_lake: Path) -> Path:
         raise ValueError(f"Archive not found: {archive}")
     parent = target_lake.parent
     parent.mkdir(parents=True, exist_ok=True)
-    temp_root = Path(tempfile.mkdtemp(prefix=".lake.", suffix=".tmp", dir=parent))
-    try:
+    with tempfile.TemporaryDirectory(prefix="leanup-lake-unpack-") as work:
+        temp_root = Path(work)
         safe_extract(archive, temp_root)
         extracted = temp_root / ".lake"
         if not extracted.exists() or not extracted.is_dir():
@@ -42,11 +42,7 @@ def _extract_lake_archive(archive: Path, target_lake: Path) -> Path:
         extracted.replace(final_temp)
         remove_path(target_lake)
         final_temp.replace(target_lake)
-        remove_path(temp_root)
         return target_lake
-    except Exception:
-        remove_path(temp_root)
-        raise
 
 
 @click.command(name="pack")
