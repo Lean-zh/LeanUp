@@ -41,7 +41,7 @@ Python wheel/package artifacts
 *-pack-source/
 ```
 
-如果确实需要非默认发布目录，只能通过显式参数或环境变量覆盖；调试和标准流程应优先使用默认 `~/.leanup/cache/serve`。
+如果确实需要非默认目录，优先显式设置 `LEANUP_HOME` 或 `LEANUP_CACHE_DIR`，让 provider 和 consumer 都从同一套 LeanUp cache 规则推导路径；调试和标准流程应优先使用默认 `~/.leanup/cache/serve`。
 
 ## 随附脚本
 
@@ -71,6 +71,9 @@ export VERSION=v4.30.0
 export LEANUP=leanup
 export ELAN_HOME=$HOME/.elan
 export PROJECT_ROOT=$HOME/leanup-provider-projects
+# Optional when using a non-default LeanUp home/cache:
+# export LEANUP_HOME=$HOME/.leanup
+# export LEANUP_CACHE_DIR=$LEANUP_HOME/cache
 
 ./scripts/provider-pack-version.sh "$VERSION"
 ```
@@ -117,6 +120,9 @@ export VERSION=v4.30.0
 export SERVER=http://PROVIDER_HOST:8765
 export LEANUP=leanup
 export ELAN_HOME=$HOME/.elan
+# Optional when using a non-default LeanUp home/cache:
+# export LEANUP_HOME=$HOME/.leanup
+# export LEANUP_CACHE_DIR=$LEANUP_HOME/cache
 
 ./scripts/consumer-restore-version.sh "$VERSION"
 ```
@@ -134,9 +140,9 @@ export ELAN_HOME=$HOME/.elan
 
 ```text
 elan <version>
-Lean (version v4.30.0, ...)
+Lean (version 4.30.0, ...)
 import Mathlib ok
-lean-related offline restore ok
+lean-related offline restore ok for <version> via <server>
 ```
 
 ## 校验边界

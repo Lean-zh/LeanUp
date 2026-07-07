@@ -71,6 +71,4 @@ nav:
   - 首页: index.md
   - 开始使用:
     - 快速开始: getting-started/quickstart.md
-  - Skills:
-    - 环境打包与内网恢复: skills/leanup-environment-pack-serve-restore/SKILL.md
   # - API Reference: api-reference.md

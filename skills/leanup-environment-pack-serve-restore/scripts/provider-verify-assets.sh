@@ -3,7 +3,9 @@ set -euo pipefail
 
 VERSION="${1:-${VERSION:-v4.30.0}}"
 SERVER="${SERVER:-http://127.0.0.1:8765}"
-ROOT="${ROOT:-$HOME/.leanup/cache/serve}"
+LEANUP_HOME="${LEANUP_HOME:-$HOME/.leanup}"
+LEANUP_CACHE_DIR="${LEANUP_CACHE_DIR:-$LEANUP_HOME/cache}"
+ROOT="${ROOT:-$LEANUP_CACHE_DIR/serve}"
 
 paths=(
   "elan/base/elan-base.tar.gz"

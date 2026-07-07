@@ -3,7 +3,9 @@ set -euo pipefail
 
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8765}"
-ROOT="${ROOT:-$HOME/.leanup/cache/serve}"
+LEANUP_HOME="${LEANUP_HOME:-$HOME/.leanup}"
+LEANUP_CACHE_DIR="${LEANUP_CACHE_DIR:-$LEANUP_HOME/cache}"
+ROOT="${ROOT:-$LEANUP_CACHE_DIR/serve}"
 LOG="${LOG:-$HOME/.leanup/logs/provider-serve.log}"
 PIDFILE="${PIDFILE:-$HOME/.leanup/state/locks/leanup-asset-server.pid}"
 PYTHON="${PYTHON:-python3}"

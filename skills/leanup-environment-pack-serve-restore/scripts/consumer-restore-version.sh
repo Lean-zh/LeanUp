@@ -5,9 +5,12 @@ VERSION="${1:-${VERSION:-v4.30.0}}"
 SERVER="${SERVER:?Set SERVER to the provider URL, for example http://PROVIDER_HOST:8765}"
 LEANUP="${LEANUP:-leanup}"
 ELAN_HOME="${ELAN_HOME:-$HOME/.elan}"
+LEANUP_HOME="${LEANUP_HOME:-$HOME/.leanup}"
+LEANUP_CACHE_DIR="${LEANUP_CACHE_DIR:-$LEANUP_HOME/cache}"
 CHECK_ROOT="${CHECK_ROOT:-$HOME/leanup-check-$VERSION}"
 TMPDIR="${TMPDIR:-$HOME/.cache/leanup-runtime-tmp}"
 
+export LEANUP_HOME LEANUP_CACHE_DIR
 export PATH="$ELAN_HOME/bin:$PATH"
 export TMPDIR
 mkdir -p "$TMPDIR"
@@ -35,7 +38,7 @@ export all_proxy=http://127.0.0.1:9
 "$LEANUP" elan check --elan-home "$ELAN_HOME"
 "$LEANUP" lean check "$VERSION" --elan-home "$ELAN_HOME"
 
-archive="$HOME/.leanup/cache/serve/mathlib/$VERSION/mathlib-lake.tar.gz"
+archive="$LEANUP_CACHE_DIR/serve/mathlib/$VERSION/mathlib-lake.tar.gz"
 mkdir -p "$(dirname "$archive")"
 curl --noproxy "$provider_host,127.0.0.1,localhost" --fail --location \
   --output "$archive.tmp" "$SERVER/mathlib/$VERSION/mathlib-lake.tar.gz"

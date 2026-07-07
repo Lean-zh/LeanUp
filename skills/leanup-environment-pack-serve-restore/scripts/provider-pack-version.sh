@@ -5,7 +5,9 @@ VERSION="${1:-${VERSION:-v4.30.0}}"
 LEANUP="${LEANUP:-leanup}"
 ELAN_HOME="${ELAN_HOME:-$HOME/.elan}"
 PROJECT_ROOT="${PROJECT_ROOT:-$HOME/leanup-provider-projects}"
-SERVE_ROOT="${SERVE_ROOT:-$HOME/.leanup/cache/serve}"
+LEANUP_HOME="${LEANUP_HOME:-$HOME/.leanup}"
+LEANUP_CACHE_DIR="${LEANUP_CACHE_DIR:-$LEANUP_HOME/cache}"
+SERVE_ROOT="${SERVE_ROOT:-$LEANUP_CACHE_DIR/serve}"
 LOG="${LOG:-$HOME/.leanup/logs/provider-pack-${VERSION}.log}"
 PACK_WORK_ROOT="${PACK_WORK_ROOT:-${TMPDIR:-/tmp}}"
 PACK_WORK_DIR=""
@@ -17,6 +19,7 @@ cleanup_pack_work() {
 }
 trap cleanup_pack_work EXIT
 
+export LEANUP_HOME LEANUP_CACHE_DIR
 export PATH="$ELAN_HOME/bin:$PATH"
 export TMPDIR="${TMPDIR:-/tmp}"
 export TMP_DIR="${TMP_DIR:-$TMPDIR}"
