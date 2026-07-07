@@ -39,7 +39,6 @@ jobs:
         leanup elan --help
         leanup lean --help
         leanup config --help
-        leanup clean --help
         leanup mathlib --help
         leanup mathlib check --help
         leanup serve --help
